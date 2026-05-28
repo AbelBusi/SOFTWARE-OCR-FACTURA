@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'login_page.dart';
 import 'camera_page.dart';
 import 'navigation_container.dart';
+import 'register_page.dart'; // Importa la nueva página
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +27,7 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const LoginPage(),
+        '/register': (context) => const RegisterPage(), // Nueva ruta
         '/dashboard': (context) => const MainNavigationContainer(),
         '/camera': (context) => const CameraPage(),
       },
