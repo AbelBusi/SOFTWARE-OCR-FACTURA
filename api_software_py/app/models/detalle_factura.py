@@ -6,6 +6,9 @@ from sqlalchemy import (
     ForeignKey
 )
 
+from sqlalchemy.orm import relationship
+
+
 from app.database import Base
 
 
@@ -45,4 +48,9 @@ class DetalleFactura(Base):
 
     subtotal = Column(
         DECIMAL(10,2)
+    )
+
+    factura = relationship(
+        "Factura",
+        back_populates="detalles"
     )

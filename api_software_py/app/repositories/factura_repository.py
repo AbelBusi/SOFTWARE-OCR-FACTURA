@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.factura import Factura
 
@@ -19,6 +19,41 @@ class FacturaRepository:
         db.refresh(factura)
 
         return factura
+
+
+
+    def obtener_por_id(
+        self,
+        db: Session,
+        id_factura: int
+    ):
+
+        return (
+            db.query(Factura)
+            .filter(
+                Factura.id_factura == id_factura
+            )
+            .first()
+        )
+
+
+
+    def obtener_con_detalles(
+        self,
+        db: Session,
+        id_factura: int
+    ):
+
+        return (
+            db.query(Factura)
+            .options(
+                joinedload(Factura.detalles)
+            )
+            .filter(
+                Factura.id_factura == id_factura
+            )
+            .first()
+        )
 
 
 

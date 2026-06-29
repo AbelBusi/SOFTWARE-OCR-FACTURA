@@ -9,6 +9,8 @@ from sqlalchemy import (
     func
 )
 
+from sqlalchemy.orm import relationship
+
 from app.database import Base
 
 
@@ -75,4 +77,12 @@ class Factura(Base):
     fecha_registro = Column(
         TIMESTAMP,
         server_default=func.now()
+    )
+
+
+    # relación con detalle_factura
+    detalles = relationship(
+        "DetalleFactura",
+        back_populates="factura",
+        cascade="all, delete-orphan"
     )

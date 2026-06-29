@@ -1,0 +1,4 @@
+api_software_py/.env
+api_software_py/venv/
+api_software_py/__pycache__/
+api_software_py/*.pyc
