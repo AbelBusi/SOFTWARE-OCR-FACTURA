@@ -1,8 +1,6 @@
 from paddleocr import PaddleOCR
 
-
 class OCRService:
-
     def __init__(self):
         self.ocr = PaddleOCR(
             lang="es",
@@ -10,12 +8,11 @@ class OCRService:
         )
 
     def extraer_texto(self, ruta_imagen):
-
-        resultado = self.ocr.ocr(
-            ruta_imagen
-        )
-
+        resultado = self.ocr.ocr(ruta_imagen)
         textos = []
+
+        if not resultado or not resultado[0]:
+            return textos
 
         for linea in resultado[0]:
             texto = linea[1][0]
