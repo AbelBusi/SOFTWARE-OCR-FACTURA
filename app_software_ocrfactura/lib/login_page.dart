@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'slide_page_route.dart';
+import 'navigation_container.dart'; // Importamos tu contenedor real
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -10,11 +12,44 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  Future<void> _handleLogin() async {
+    if (_isLoading) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    // Simula el tiempo de verificación de credenciales del banco
+    await Future.delayed(const Duration(milliseconds: 1800));
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    // Cambiado de la plantilla genérica a tu Widget real
+    Navigator.of(context).pushReplacement(
+      SlidePageRoute(
+        page: const MainNavigationContainer(),
+        routeName: '/dashboard',
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -25,7 +60,7 @@ class _LoginPageState extends State<LoginPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Icon(
-                  Icons.document_scanner_outlined,
+                  Icons.document_scanner_rounded,
                   size: 72,
                   color: theme.colorScheme.primary,
                 ),
@@ -34,8 +69,8 @@ class _LoginPageState extends State<LoginPage> {
                   "OCR FACTURA",
                   textAlign: TextAlign.center,
                   style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.normal,
-                    letterSpacing: 1.2,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.5,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -49,52 +84,68 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 40),
                 TextField(
                   controller: _emailController,
+                  enabled: !_isLoading,
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
                     labelText: "Correo electrónico",
                     prefixIcon: Icon(Icons.email_outlined),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                      borderRadius: BorderRadius.all(Radius.circular(14)),
                     ),
                   ),
                 ),
                 const SizedBox(height: 20),
                 TextField(
                   controller: _passwordController,
+                  enabled: !_isLoading,
                   obscureText: true,
                   decoration: const InputDecoration(
                     labelText: "Contraseña",
-                    prefixIcon: Icon(Icons.lock_outline),
+                    prefixIcon: Icon(Icons.lock_outline_rounded),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                      borderRadius: BorderRadius.all(Radius.circular(14)),
                     ),
                   ),
                 ),
                 const SizedBox(height: 32),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/dashboard');
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary,
-                    foregroundColor: theme.colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  height: 54,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _handleLogin,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: theme.colorScheme.onPrimary,
+                      disabledBackgroundColor: theme.colorScheme.primary.withOpacity(0.8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      elevation: 0,
                     ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    "Entrar",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                    child: _isLoading
+                        ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                        : const Text(
+                      "Entrar",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.3,
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 24),
                 TextButton(
-                  onPressed: () {
+                  onPressed: _isLoading
+                      ? null
+                      : () {
                     Navigator.pushNamed(context, '/register');
                   },
                   style: TextButton.styleFrom(
@@ -113,117 +164,3 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 32.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Icon(
-                  Icons.document_scanner_outlined,
-                  size: 72,
-                  color: Colors.blue,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  "OCR FACTURA",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  "Ingresa tus credenciales para continuar",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
-                ),
-                const SizedBox(height: 40),
-                TextField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    labelText: "Correo electrónico",
-                    prefixIcon: const Icon(Icons.email_outlined),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.grey),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                TextField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: "Contraseña",
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.grey),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/dashboard');
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 2,
-                  ),
-                  child: const Text(
-                    "Entrar",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/register');
-                  },
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.blue,
-                  ),
-                  child: const Text(
-                    "¿No tienes cuenta? Regístrate aquí",
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
