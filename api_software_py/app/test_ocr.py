@@ -1,30 +1,65 @@
 import os
 import json
+
+from dotenv import load_dotenv
+
 from app.services.ocr_service import OCRService
 from app.services.invoice_service import InvoiceService
 
-ruta = os.path.join(
-    os.path.dirname(__file__),
-    "..",
-    "uploads",
-    "prueba.jpg"
+
+base_dir = os.path.dirname(os.path.abspath(__file__))
+
+load_dotenv(
+    os.path.join(base_dir, "..", ".env")
 )
-ruta = os.path.abspath(ruta)
+
+ruta = os.path.abspath(
+    os.path.join(base_dir, "..", "uploads", "prueba.jpg")
+)
+
+ruta_cache = os.path.abspath(
+    os.path.join(base_dir, "..", "uploads", "cache_ocr.json")
+)
 
 print("Verificando entorno de prueba...")
-print("Ruta del archivo:", ruta)
-print("Archivo encontrado:", os.path.exists(ruta))
 
 if os.path.exists(ruta):
-    ocr = OCRService()
-    resultado_ocr = ocr.extraer_texto(ruta)
+
+    if os.path.exists(ruta_cache):
+
+        print("Cargando OCR desde cache...")
+
+        with open(ruta_cache, "r", encoding="utf-8") as f:
+            resultado_ocr = json.load(f)
+
+    else:
+
+        print("Procesando imagen con PaddleOCR...")
+
+        ocr = OCRService()
+
+        resultado_ocr = ocr.extraer_texto(ruta)
+
+        with open(ruta_cache, "w", encoding="utf-8") as f:
+            json.dump(
+                resultado_ocr,
+                f,
+                ensure_ascii=False,
+                indent=4
+            )
 
     invoice_service = InvoiceService()
-    factura_procesada = invoice_service.procesar(resultado_ocr)
 
-    print("\n==========================================")
-    print("      RESULTADO FACTURA ESTRUCTURADA      ")
-    print("==========================================")
-    print(json.dumps(factura_procesada, indent=4, ensure_ascii=False))
+    factura = invoice_service.procesar(resultado_ocr)
+
+    print("\n====================================")
+    print("FACTURA ESTRUCTURADA")
+    print("====================================")
+    print(json.dumps(
+        factura,
+        indent=4,
+        ensure_ascii=False
+    ))
+
 else:
-    print("Error: Coloca una imagen válida en la ruta especificada antes de ejecutar.")
+    print("No existe la imagen de prueba.")

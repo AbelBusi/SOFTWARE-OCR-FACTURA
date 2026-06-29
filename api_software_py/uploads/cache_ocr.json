@@ -1,0 +1,238 @@
+[
+    {
+        "texto": "TRADICIONALGASTROBARS.L",
+        "confianza": 0.9413002729415894
+    },
+    {
+        "texto": "MERCADO DE ATARAZANAS Puest N1",
+        "confianza": 0.8605136275291443
+    },
+    {
+        "texto": "MALAGA (MALAGA)",
+        "confianza": 0.9034129977226257
+    },
+    {
+        "texto": "893429298",
+        "confianza": 0.9675674438476562
+    },
+    {
+        "texto": "EACTURA",
+        "confianza": 0.9071512818336487
+    },
+    {
+        "texto": "TEL951253693",
+        "confianza": 0.9932868480682373
+    },
+    {
+        "texto": "SALON",
+        "confianza": 0.9957337379455566
+    },
+    {
+        "texto": "47849",
+        "confianza": 0.9973461031913757
+    },
+    {
+        "texto": "FECHA22/09/2017",
+        "confianza": 0.9940996766090393
+    },
+    {
+        "texto": "12",
+        "confianza": 0.9986667633056641
+    },
+    {
+        "texto": "HORA:",
+        "confianza": 0.975681483745575
+    },
+    {
+        "texto": "16:07:00",
+        "confianza": 0.9583032131195068
+    },
+    {
+        "texto": "Uds ARTICULO",
+        "confianza": 0.9192753434181213
+    },
+    {
+        "texto": "PRECIO IMPORTE",
+        "confianza": 0.9471635818481445
+    },
+    {
+        "texto": "CALAMAR PLANCHA",
+        "confianza": 0.9726362824440002
+    },
+    {
+        "texto": "12,50",
+        "confianza": 0.950370192527771
+    },
+    {
+        "texto": "12,50",
+        "confianza": 0.9478286504745483
+    },
+    {
+        "texto": "Pcho.Gambon",
+        "confianza": 0.9802885055541992
+    },
+    {
+        "texto": "3,00",
+        "confianza": 0.9651758670806885
+    },
+    {
+        "texto": "12,00",
+        "confianza": 0.9616468548774719
+    },
+    {
+        "texto": "2",
+        "confianza": 0.9990756511688232
+    },
+    {
+        "texto": "Pcho.Pulpo",
+        "confianza": 0.9766505360603333
+    },
+    {
+        "texto": "3,00",
+        "confianza": 0.9451967477798462
+    },
+    {
+        "texto": "6,00",
+        "confianza": 0.9337900876998901
+    },
+    {
+        "texto": "2",
+        "confianza": 0.9992173910140991
+    },
+    {
+        "texto": "Bro.Pescado",
+        "confianza": 0.9892606139183044
+    },
+    {
+        "texto": "3,50",
+        "confianza": 0.9288604259490967
+    },
+    {
+        "texto": "7,00",
+        "confianza": 0.964831531047821
+    },
+    {
+        "texto": "Berenjenas",
+        "confianza": 0.9927899241447449
+    },
+    {
+        "texto": "6,50",
+        "confianza": 0.9002718329429626
+    },
+    {
+        "texto": "6,50",
+        "confianza": 0.9561505913734436
+    },
+    {
+        "texto": "Mejillones",
+        "confianza": 0.922023594379425
+    },
+    {
+        "texto": "6,50",
+        "confianza": 0.9471594095230103
+    },
+    {
+        "texto": "6,50",
+        "confianza": 0.983031153678894
+    },
+    {
+        "texto": "Boquerones al Limo",
+        "confianza": 0.9140772223472595
+    },
+    {
+        "texto": "3,70",
+        "confianza": 0.9625635147094727
+    },
+    {
+        "texto": "3,70",
+        "confianza": 0.9622112512588501
+    },
+    {
+        "texto": "2",
+        "confianza": 0.9994204044342041
+    },
+    {
+        "texto": "Tinto Verano Limon",
+        "confianza": 0.9411249160766602
+    },
+    {
+        "texto": "1,50",
+        "confianza": 0.9553031921386719
+    },
+    {
+        "texto": "3,00",
+        "confianza": 0.9001898169517517
+    },
+    {
+        "texto": "1",
+        "confianza": 0.995187520980835
+    },
+    {
+        "texto": "Copa Rueda Verdejo",
+        "confianza": 0.9552994966506958
+    },
+    {
+        "texto": "2,50",
+        "confianza": 0.9647190570831299
+    },
+    {
+        "texto": "2,50",
+        "confianza": 0.9032565355300903
+    },
+    {
+        "texto": "1",
+        "confianza": 0.9939236044883728
+    },
+    {
+        "texto": "Pinta",
+        "confianza": 0.9873924255371094
+    },
+    {
+        "texto": "2.80",
+        "confianza": 0.8821648359298706
+    },
+    {
+        "texto": "2,80",
+        "confianza": 0.9229395389556885
+    },
+    {
+        "texto": "SERVICIOS:16",
+        "confianza": 0.9550933241844177
+    },
+    {
+        "texto": "TOTAL",
+        "confianza": 0.9973738789558411
+    },
+    {
+        "texto": "62,50",
+        "confianza": 0.9826757311820984
+    },
+    {
+        "texto": "ENTREGA",
+        "confianza": 0.9955242872238159
+    },
+    {
+        "texto": "0,00",
+        "confianza": 0.9613398313522339
+    },
+    {
+        "texto": "LUIS",
+        "confianza": 0.9737783670425415
+    },
+    {
+        "texto": "CAMBIO",
+        "confianza": 0.9901894927024841
+    },
+    {
+        "texto": "0,00",
+        "confianza": 0.963638961315155
+    },
+    {
+        "texto": "CONTADO",
+        "confianza": 0.9966416954994202
+    },
+    {
+        "texto": "**IVAINCLUIDO**",
+        "confianza": 0.9626234769821167
+    }
+]
