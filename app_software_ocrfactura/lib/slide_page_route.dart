@@ -11,7 +11,6 @@ class SlidePageRoute extends PageRouteBuilder {
     transitionDuration: const Duration(milliseconds: 2600),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
 
-      // 1. Control general de la pantalla de carga (Fade In / Fade Out)
       final overlayFadeIn = Tween<double>(begin: 0.0, end: 1.0).animate(
         CurvedAnimation(
           parent: animation,
@@ -26,7 +25,6 @@ class SlidePageRoute extends PageRouteBuilder {
         ),
       );
 
-      // 2. Animación de Entrada del Icono (Sube desde el fondo)
       final iconEntry = Tween<Offset>(
         begin: const Offset(0.0, 0.4),
         end: Offset.zero,
@@ -37,7 +35,6 @@ class SlidePageRoute extends PageRouteBuilder {
         ),
       );
 
-      // 3. Efecto Placebo: Escaner de Línea (Láser OCR sobre el contenedor)
       final scannerTimeline = Tween<double>(begin: -1.0, end: 1.5).animate(
         CurvedAnimation(
           parent: animation,
@@ -45,7 +42,6 @@ class SlidePageRoute extends PageRouteBuilder {
         ),
       );
 
-      // 4. Escala expansiva final para fundirse con el AppBar del Dashboard
       final iconScaleOut = Tween<double>(begin: 1.0, end: 14.0).animate(
         CurvedAnimation(
           parent: animation,
@@ -53,7 +49,6 @@ class SlidePageRoute extends PageRouteBuilder {
         ),
       );
 
-      // 5. Textos dinámicos basados en el progreso real del frame
       final textProgress = animation.value;
       String loadingText = "Verificando credenciales...";
       if (textProgress > 0.50) loadingText = "Analizando perfil...";
@@ -61,20 +56,8 @@ class SlidePageRoute extends PageRouteBuilder {
 
       return Stack(
         children: [
-          // Tu MainNavigationContainer esperando abajo
           child,
 
-          // Capa de transición unificada con tus colores.
-          //
-          // FIX: IgnorePointer es la clave del bug de la barra inferior.
-          // FadeTransition/Opacity solo afectan lo visual, NO el hit-test:
-          // aunque la opacidad llegue a 0, este Scaffold seguía capturando
-          // TODOS los toques de la pantalla de destino para siempre,
-          // porque transitionsBuilder envuelve la página mientras la ruta
-          // está activa (no solo durante los 2.6s de la animación; una vez
-          // completada, animation queda fija en 1.0 y este Stack se sigue
-          // construyendo). Por eso los íconos de abajo no respondían: el
-          // toque nunca llegaba a ellos, lo absorbía esta capa invisible.
           IgnorePointer(
             ignoring: animation.isCompleted,
             child: FadeTransition(
@@ -82,7 +65,7 @@ class SlidePageRoute extends PageRouteBuilder {
               child: FadeTransition(
                 opacity: overlayFadeOut,
                 child: Scaffold(
-                  backgroundColor: const Color(0xFF1565C0), // Azul empresarial exacto de tu Main
+                  backgroundColor: const Color(0xFF1565C0),
                   body: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -94,7 +77,6 @@ class SlidePageRoute extends PageRouteBuilder {
                             child: Stack(
                               alignment: Alignment.center,
                               children: [
-                                // Contenedor del avatar en contraste blanco/translúcido
                                 Container(
                                   padding: const EdgeInsets.all(24),
                                   decoration: BoxDecoration(
@@ -111,7 +93,6 @@ class SlidePageRoute extends PageRouteBuilder {
                                     color: Colors.white,
                                   ),
                                 ),
-                                // Línea de escaneo láser (Cian luminoso para resaltar sobre el azul)
                                 AnimatedBuilder(
                                   animation: scannerTimeline,
                                   builder: (context, _) {
@@ -143,7 +124,6 @@ class SlidePageRoute extends PageRouteBuilder {
                           ),
                         ),
                         const SizedBox(height: 40),
-                        // Texto dinámico con micro-animación de cambio
                         AnimatedSwitcher(
                           duration: const Duration(milliseconds: 200),
                           child: Text(
@@ -158,7 +138,6 @@ class SlidePageRoute extends PageRouteBuilder {
                           ),
                         ),
                         const SizedBox(height: 20),
-                        // Barra de carga que usa el fondo claro de tus Scaffolds
                         SizedBox(
                           width: 140,
                           child: LinearProgressIndicator(

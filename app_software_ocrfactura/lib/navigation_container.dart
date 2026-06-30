@@ -29,7 +29,7 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.pushNamed(context, '/camera'),
-        backgroundColor: const Color(0xFF0D6B68),
+        backgroundColor: const Color(0xFF1565C0),
         elevation: 4,
         shape: const CircleBorder(),
         child: const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 28),
