@@ -10,7 +10,7 @@ class HistoryView extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF1E1E1E),
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -31,7 +31,7 @@ class HistoryView extends StatelessWidget {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white24,
+                    color: const Color(0xFFE0E0E0),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -42,15 +42,15 @@ class HistoryView extends StatelessWidget {
                 children: [
                   const Text(
                     'Detalle del Comprobante',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF263238)),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: esAlerta ? Colors.redAccent.withOpacity(0.1) : const Color(0xFF0D6B68).withOpacity(0.1),
+                      color: esAlerta ? const Color(0xFFFFEBEE) : const Color(0xFFE8F5E9),
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(
-                        color: esAlerta ? Colors.redAccent : const Color(0xFF0D6B68),
+                        color: esAlerta ? const Color(0xFFD32F2F) : const Color(0xFF2E7D32),
                         width: 0.5,
                       ),
                     ),
@@ -59,14 +59,14 @@ class HistoryView extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
-                        color: esAlerta ? Colors.redAccent : const Color(0xFF11CAA0),
+                        color: esAlerta ? const Color(0xFFD32F2F) : const Color(0xFF2E7D32),
                       ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 20),
-              const Divider(color: Colors.white10, height: 1),
+              const Divider(color: Color(0xFFE0E0E0), height: 1),
               const SizedBox(height: 20),
               _buildDetailRow('Empresa / Razón Social', factura['empresa']!),
               _buildDetailRow('RUC del Emisor', factura['ruc']!),
@@ -77,23 +77,23 @@ class HistoryView extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.02),
+                  color: const Color(0xFFF7F9FC),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0x0FFFFFFF)),
+                  border: Border.all(color: const Color(0xFFE0E0E0)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
                       'Monto Total Total',
-                      style: TextStyle(color: Colors.white60, fontSize: 14),
+                      style: TextStyle(color: Color(0xFF78909C), fontSize: 14),
                     ),
                     Text(
                       factura['monto']!,
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: Color(0xFF263238),
                       ),
                     ),
                   ],
@@ -105,7 +105,7 @@ class HistoryView extends StatelessWidget {
                 child: FilledButton(
                   onPressed: () => Navigator.pop(context),
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF0D6B68),
+                    backgroundColor: const Color(0xFF1565C0),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -127,14 +127,14 @@ class HistoryView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+          Text(label, style: const TextStyle(color: Color(0xFF78909C), fontSize: 12)),
           const SizedBox(height: 4),
           Text(
             value,
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 14,
-              color: Colors.white,
+              color: Color(0xFF263238),
             ),
           ),
         ],
@@ -160,24 +160,34 @@ class HistoryView extends StatelessWidget {
               final esAlerta = item['estado']!.contains('Alerta');
               return Card(
                 margin: const EdgeInsets.only(bottom: 10),
-                color: Colors.white.withOpacity(0.01),
+                color: Colors.white,
+                elevation: 2,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: Color(0x0FFFFFFF), width: 1),
+                  side: const BorderSide(color: Color(0xFFE0E0E0), width: 1),
                 ),
                 child: ListTile(
                   onTap: () => _showInvoiceDetails(context, item),
                   leading: CircleAvatar(
-                    backgroundColor: esAlerta ? Colors.redAccent.withOpacity(0.1) : const Color(0xFF0D6B68).withOpacity(0.1),
+                    backgroundColor: esAlerta ? const Color(0xFFFFEBEE) : const Color(0xFFE3F2FD),
                     child: Icon(
                       esAlerta ? Icons.error_outline_rounded : Icons.receipt_long_rounded,
-                      color: esAlerta ? Colors.redAccent : const Color(0xFF0D6B68),
+                      color: esAlerta ? const Color(0xFFD32F2F) : const Color(0xFF1565C0),
                     ),
                   ),
-                  title: Text(item['empresa']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  subtitle: Text('RUC: ${item['ruc']}\nFecha: ${item['fecha']} • ${item['estado']}', style: const TextStyle(fontSize: 12)),
+                  title: Text(
+                      item['empresa']!,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF263238))
+                  ),
+                  subtitle: Text(
+                      'RUC: ${item['ruc']}\nFecha: ${item['fecha']} • ${item['estado']}',
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF78909C))
+                  ),
                   isThreeLine: true,
-                  trailing: Text(item['monto']!, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  trailing: Text(
+                      item['monto']!,
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF263238))
+                  ),
                 ),
               );
             },

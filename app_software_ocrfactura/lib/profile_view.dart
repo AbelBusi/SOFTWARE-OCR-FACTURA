@@ -20,13 +20,9 @@ class ProfileView extends StatelessWidget {
                   Container(
                     width: 110,
                     height: 110,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [const Color(0xFF0D6B68), const Color(0xFF0D6B68).withOpacity(0.4)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                      color: Color(0xFF1565C0),
                     ),
                     child: const Icon(Icons.person_rounded, size: 55, color: Colors.white),
                   ),
@@ -35,7 +31,7 @@ class ProfileView extends StatelessWidget {
                     right: 0,
                     child: Container(
                       padding: const EdgeInsets.all(6),
-                      decoration: const BoxDecoration(color: Color(0xFF0D6B68), shape: BoxShape.circle),
+                      decoration: const BoxDecoration(color: Color(0xFF1565C0), shape: BoxShape.circle),
                       child: const Icon(Icons.edit_rounded, size: 16, color: Colors.white),
                     ),
                   ),
@@ -43,8 +39,14 @@ class ProfileView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            const Text('Blas', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-            const Text('Ingeniería de Sistemas • UTP', style: TextStyle(color: Colors.white60, fontSize: 14)),
+            const Text(
+              'Blas',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF263238)),
+            ),
+            const Text(
+              'Ingeniería de Sistemas • UTP',
+              style: TextStyle(color: Color(0xFF78909C), fontSize: 14, fontWeight: FontWeight.w500),
+            ),
             const SizedBox(height: 32),
             _buildProfileItem(Icons.badge_rounded, 'Rol de Usuario', 'Administrador de Sistema'),
             _buildProfileItem(Icons.domain_rounded, 'Sede', 'Chiclayo'),
@@ -61,20 +63,23 @@ class ProfileView extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.02),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.04)),
+        border: Border.all(color: const Color(0xFFE0E0E0)),
       ),
       child: Row(
         children: [
-          Icon(icon, color: const Color(0xFF0D6B68), size: 24),
+          Icon(icon, color: const Color(0xFF1565C0), size: 24),
           const SizedBox(width: 16),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+              Text(title, style: const TextStyle(color: Color(0xFF78909C), fontSize: 12)),
               const SizedBox(height: 2),
-              Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              Text(
+                value,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF263238)),
+              ),
             ],
           ),
         ],
