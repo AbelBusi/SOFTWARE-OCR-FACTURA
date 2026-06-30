@@ -35,32 +35,46 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
         child: const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 28),
       ),
       bottomNavigationBar: BottomAppBar(
+        color: const Color(0xFF1565C0),
         shape: const CircularNotchedRectangle(),
         notchMargin: 8.0,
-        clipBehavior: Clip.antiAlias,
-        child: SizedBox(
-          height: 60,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              IconButton(
-                icon: Icon(Icons.analytics_rounded, color: _currentIndex == 0 ? const Color(0xFF0D6B68) : Colors.white60),
-                onPressed: () => setState(() => _currentIndex = 0),
-              ),
-              IconButton(
-                icon: Icon(Icons.history_toggle_off_rounded, color: _currentIndex == 1 ? const Color(0xFF0D6B68) : Colors.white60),
-                onPressed: () => setState(() => _currentIndex = 1),
-              ),
-              const SizedBox(width: 40),
-              IconButton(
-                icon: Icon(Icons.person_outline_rounded, color: _currentIndex == 2 ? const Color(0xFF0D6B68) : Colors.white60),
-                onPressed: () => setState(() => _currentIndex = 2),
-              ),
-              IconButton(
-                icon: const Icon(Icons.logout_rounded, color: Colors.white60),
-                onPressed: () => Navigator.pushReplacementNamed(context, '/'),
-              ),
-            ],
+        padding: EdgeInsets.zero,
+        child: SafeArea(
+          bottom: true,
+          child: SizedBox(
+            height: 60,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Expanded(
+                  child: IconButton(
+                    icon: Icon(Icons.analytics_rounded, color: _currentIndex == 0 ? Colors.white : Colors.white60),
+                    onPressed: () => setState(() => _currentIndex = 0),
+                  ),
+                ),
+                Expanded(
+                  child: IconButton(
+                    icon: Icon(Icons.history_toggle_off_rounded, color: _currentIndex == 1 ? Colors.white : Colors.white60),
+                    onPressed: () => setState(() => _currentIndex = 1),
+                  ),
+                ),
+                const SizedBox(width: 40),
+                Expanded(
+                  child: IconButton(
+                    icon: Icon(Icons.person_outline_rounded, color: _currentIndex == 2 ? Colors.white : Colors.white60),
+                    onPressed: () => setState(() => _currentIndex = 2),
+                  ),
+                ),
+                Expanded(
+                  child: IconButton(
+                    icon: const Icon(Icons.logout_rounded, color: Colors.white60),
+                    onPressed: () {
+                      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

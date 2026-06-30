@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'slide_page_route.dart';
-import 'navigation_container.dart'; // Importamos tu contenedor real
+import 'navigation_container.dart';
+import 'custom_alert.dart';
+import '../services/auth_service.dart';
+import '../services/token_storage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -12,31 +15,56 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
   bool _isLoading = false;
 
   Future<void> _handleLogin() async {
     if (_isLoading) return;
 
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      CustomAlert.warning(context, "Por favor, completa todos los campos");
+      return;
+    }
+
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+      CustomAlert.warning(context, "Ingresa un correo electrónico válido");
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
-    // Simula el tiempo de verificación de credenciales del banco
-    await Future.delayed(const Duration(milliseconds: 1800));
+    try {
+      final result = await _authService.login(email, password);
 
-    if (!mounted) return;
+      await TokenStorage.saveToken(result.accessToken);
 
-    setState(() {
-      _isLoading = false;
-    });
+      if (!mounted) return;
 
-    // Cambiado de la plantilla genérica a tu Widget real
-    Navigator.of(context).pushReplacement(
-      SlidePageRoute(
-        page: const MainNavigationContainer(),
-        routeName: '/dashboard',
-      ),
-    );
+      Navigator.of(context).pushReplacement(
+        SlidePageRoute(
+          page: const MainNavigationContainer(),
+          routeName: '/dashboard',
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      CustomAlert.error(
+        context,
+        e.toString().replaceFirst("Exception: ", ""),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
