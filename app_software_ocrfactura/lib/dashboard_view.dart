@@ -35,10 +35,9 @@ class DashboardView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Tarjeta de Control Financiero
                 Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0D6B68),
+                    color: const Color(0xFF1565C0),
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: const [
                       BoxShadow(
@@ -59,7 +58,7 @@ class DashboardView extends StatelessWidget {
                             const Text(
                               'TOTAL PROCESADO (MES)',
                               style: TextStyle(
-                                color: Color(0xFFE0F2F1), // Color corregido directamente sin extensión
+                                color: Color(0xFFE3F2FD),
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
                                 letterSpacing: 0.8,
@@ -93,7 +92,6 @@ class DashboardView extends StatelessWidget {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 32),
                 const Text(
                   'Frecuencia de Documentos',
@@ -104,8 +102,6 @@ class DashboardView extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-
-                // Panel de Gráficas Empresariales
                 Container(
                   height: 160,
                   padding: const EdgeInsets.all(20),
@@ -128,7 +124,6 @@ class DashboardView extends StatelessWidget {
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 32),
                 const Text(
                   'Alertas y Validaciones Críticas',
@@ -139,8 +134,6 @@ class DashboardView extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-
-                // Lista de Auditoría
                 ...lista.where((item) => item['estado']!.contains('Alerta')).map((item) {
                   return Container(
                     margin: const EdgeInsets.only(bottom: 12),
@@ -155,7 +148,7 @@ class DashboardView extends StatelessWidget {
                           Container(
                             width: 5,
                             decoration: const BoxDecoration(
-                              color: Color(0xFFC62828),
+                              color: Color(0xFFD32F2F),
                               borderRadius: BorderRadius.only(
                                 topLeft: Radius.circular(8),
                                 bottomLeft: Radius.circular(8),
@@ -167,7 +160,7 @@ class DashboardView extends StatelessWidget {
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                               leading: const Icon(
                                 Icons.gavel_rounded,
-                                color: Color(0xFFC62828),
+                                color: Color(0xFFD32F2F),
                                 size: 22,
                               ),
                               title: Text(
@@ -192,7 +185,7 @@ class DashboardView extends StatelessWidget {
                                 item['monto']!,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w800,
-                                  color: Color(0xFFC62828),
+                                  color: Color(0xFFD32F2F),
                                   fontSize: 14,
                                 ),
                               ),
@@ -219,7 +212,7 @@ class DashboardView extends StatelessWidget {
           child: Container(
             width: 14,
             decoration: BoxDecoration(
-              color: const Color(0xFFF0F4F4),
+              color: const Color(0xFFECEFF1),
               borderRadius: BorderRadius.circular(3),
             ),
             alignment: Alignment.bottomCenter,
@@ -228,7 +221,7 @@ class DashboardView extends StatelessWidget {
               child: Container(
                 width: 14,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0D6B68),
+                  color: const Color(0xFF1565C0),
                   borderRadius: BorderRadius.circular(3),
                 ),
               ),

@@ -42,7 +42,7 @@ class _LoginPageState extends State<LoginPage> {
       final result = await _authService.login(email, password);
 
       await TokenStorage.saveToken(result.accessToken);
-
+      await TokenStorage.saveUserId(result.usuario.idUsuario);
       if (!mounted) return;
 
       Navigator.of(context).pushReplacement(

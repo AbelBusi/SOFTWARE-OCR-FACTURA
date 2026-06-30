@@ -1,198 +1,150 @@
 import 'package:flutter/material.dart';
-import 'app_state.dart';
+import 'models/factura.dart';
+import 'services/factura_service.dart';
+import 'services/token_storage.dart';
+import 'invoice_detail_sheet.dart';
 
-class HistoryView extends StatelessWidget {
+class HistoryView extends StatefulWidget {
   const HistoryView({super.key});
 
-  void _showInvoiceDetails(BuildContext context, Map<String, String> factura) {
-    final esAlerta = factura['estado']!.contains('Alerta');
+  @override
+  State<HistoryView> createState() => _HistoryViewState();
+}
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            top: 24,
-            left: 24,
-            right: 24,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE0E0E0),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Detalle del Comprobante',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF263238)),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: esAlerta ? const Color(0xFFFFEBEE) : const Color(0xFFE8F5E9),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: esAlerta ? const Color(0xFFD32F2F) : const Color(0xFF2E7D32),
-                        width: 0.5,
-                      ),
-                    ),
-                    child: Text(
-                      factura['estado']!.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: esAlerta ? const Color(0xFFD32F2F) : const Color(0xFF2E7D32),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              const Divider(color: Color(0xFFE0E0E0), height: 1),
-              const SizedBox(height: 20),
-              _buildDetailRow('Empresa / Razón Social', factura['empresa']!),
-              _buildDetailRow('RUC del Emisor', factura['ruc']!),
-              _buildDetailRow('Fecha de Emisión', factura['fecha']!),
-              _buildDetailRow('Tipo de Documento', 'Factura Electrónica (01)'),
-              _buildDetailRow('Moneda', 'Soles (PEN)'),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF7F9FC),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFE0E0E0)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Monto Total Total',
-                      style: TextStyle(color: Color(0xFF78909C), fontSize: 14),
-                    ),
-                    Text(
-                      factura['monto']!,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF263238),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF1565C0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  child: const Text('CERRAR DETALLES'),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+class _HistoryViewState extends State<HistoryView> {
+  late Future<List<Factura>> _futureFacturas;
+
+  @override
+  void initState() {
+    super.initState();
+    _futureFacturas = _cargarFacturas();
   }
 
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: const TextStyle(color: Color(0xFF78909C), fontSize: 12)),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-              color: Color(0xFF263238),
-            ),
-          ),
-        ],
-      ),
-    );
+  Future<List<Factura>> _cargarFacturas() async {
+    final idUsuario = await TokenStorage.getUserId();
+    if (idUsuario == null) {
+      throw Exception('No se encontró el usuario. Inicia sesión nuevamente.');
+    }
+    return FacturaService.getFacturasUsuario(idUsuario);
+  }
+
+  Future<void> _refrescar() async {
+    setState(() {
+      _futureFacturas = _cargarFacturas();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF7F9FC),
       appBar: AppBar(
-        title: const Text('Historial de Comprobantes', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Historial de Comprobantes',
+            style: TextStyle(fontWeight: FontWeight.bold)),
         automaticallyImplyLeading: false,
+        backgroundColor: const Color(0xFF1565C0),
+        foregroundColor: Colors.white,
+        elevation: 0,
       ),
-      body: ValueListenableBuilder(
-        valueListenable: AppState.facturas,
-        builder: (context, lista, child) {
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: lista.length,
-            itemBuilder: (context, index) {
-              final item = lista[(lista.length - 1) - index];
-              final esAlerta = item['estado']!.contains('Alerta');
-              return Card(
-                margin: const EdgeInsets.only(bottom: 10),
-                color: Colors.white,
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: Color(0xFFE0E0E0), width: 1),
-                ),
-                child: ListTile(
-                  onTap: () => _showInvoiceDetails(context, item),
-                  leading: CircleAvatar(
-                    backgroundColor: esAlerta ? const Color(0xFFFFEBEE) : const Color(0xFFE3F2FD),
-                    child: Icon(
-                      esAlerta ? Icons.error_outline_rounded : Icons.receipt_long_rounded,
-                      color: esAlerta ? const Color(0xFFD32F2F) : const Color(0xFF1565C0),
+      body: RefreshIndicator(
+        onRefresh: _refrescar,
+        child: FutureBuilder<List<Factura>>(
+          future: _futureFacturas,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError) {
+              return ListView(
+                children: [
+                  const SizedBox(height: 100),
+                  Icon(Icons.error_outline_rounded,
+                      size: 48, color: Colors.grey.shade400),
+                  const SizedBox(height: 12),
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Text(
+                        '${snapshot.error}'.replaceFirst('Exception: ', ''),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Color(0xFF78909C)),
+                      ),
                     ),
                   ),
-                  title: Text(
-                      item['empresa']!,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF263238))
-                  ),
-                  subtitle: Text(
-                      'RUC: ${item['ruc']}\nFecha: ${item['fecha']} • ${item['estado']}',
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF78909C))
-                  ),
-                  isThreeLine: true,
-                  trailing: Text(
-                      item['monto']!,
-                      style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF263238))
-                  ),
-                ),
+                ],
               );
-            },
-          );
-        },
+            }
+
+            final facturas = snapshot.data ?? [];
+
+            if (facturas.isEmpty) {
+              return ListView(
+                children: const [
+                  SizedBox(height: 100),
+                  Center(
+                    child: Text(
+                      'Aún no tienes comprobantes registrados',
+                      style: TextStyle(color: Color(0xFF78909C)),
+                    ),
+                  ),
+                ],
+              );
+            }
+
+            final ordenadas = List<Factura>.from(facturas)
+              ..sort((a, b) => b.idFactura.compareTo(a.idFactura));
+
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: ordenadas.length,
+              itemBuilder: (context, index) {
+                final f = ordenadas[index];
+                final esAlbaran =
+                f.tipoComprobante.toLowerCase().contains('albaran');
+
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  color: Colors.white,
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: const BorderSide(color: Color(0xFFE0E0E0), width: 1),
+                  ),
+                  child: ListTile(
+                    onTap: () => InvoiceDetailSheet.show(context, f.idFactura),
+                    leading: CircleAvatar(
+                      backgroundColor: const Color(0xFFE3F2FD),
+                      child: Icon(
+                        esAlbaran
+                            ? Icons.description_rounded
+                            : Icons.receipt_long_rounded,
+                        color: const Color(0xFF1565C0),
+                      ),
+                    ),
+                    title: Text(
+                      f.tipoComprobante,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: Color(0xFF263238)),
+                    ),
+                    subtitle: Text(
+                      'N° ${f.numeroComprobante}\nFecha: ${f.fechaEmision}',
+                      style:
+                      const TextStyle(fontSize: 12, color: Color(0xFF78909C)),
+                    ),
+                    isThreeLine: true,
+                    trailing: Text(
+                      'S/ ${f.total.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, color: Color(0xFF263238)),
+                    ),
+                  ),
+                );
+              },
+            );          },
+        ),
       ),
     );
   }

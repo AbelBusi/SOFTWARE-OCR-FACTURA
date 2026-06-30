@@ -17,23 +17,21 @@ class _CameraPageState extends State<CameraPage> {
     try {
       final XFile? photo = await _picker.pickImage(
         source: ImageSource.camera,
-        imageQuality: 85, // Optimiza el procesamiento del motor OCR
+        imageQuality: 85,
       );
-      
+
       if (photo == null) return;
 
       setState(() {
         _isProcessing = true;
       });
 
-      // Inicializar el reconocedor de texto nativo
       final inputImage = InputImage.fromFilePath(photo.path);
       final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
       final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
 
       List<String> lineasDetectadas = [];
-      
-      // Extraer cada línea de texto real identificada por la cámara
+
       for (TextBlock block in recognizedText.blocks) {
         for (TextLine line in block.lines) {
           if (line.text.trim().isNotEmpty) {
@@ -50,7 +48,6 @@ class _CameraPageState extends State<CameraPage> {
 
       if (!mounted) return;
 
-      // Mostrar el modal con los resultados reales si se detectó algo
       if (lineasDetectadas.isNotEmpty) {
         _showResultsModal(lineasDetectadas);
       } else {
@@ -68,7 +65,7 @@ class _CameraPageState extends State<CameraPage> {
   void _showResultsModal(List<String> textoLineas) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E1E1E),
+      backgroundColor: Colors.white,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
@@ -92,45 +89,46 @@ class _CameraPageState extends State<CameraPage> {
                     child: Container(
                       width: 40,
                       height: 4,
-margin: const EdgeInsets.only(bottom: 16),                      decoration: BoxDecoration(
-                        color: Colors.white24,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE0E0E0),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                   ),
                   Row(
                     children: [
-                      const Icon(Icons.abc_rounded, color: Color(0xFF0D6B68), size: 32),
+                      const Icon(Icons.abc_rounded, color: Color(0xFF1565C0), size: 32),
                       const SizedBox(width: 12),
                       Text(
                         'Texto Identificado',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          color: const Color(0xFF263238),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   const Text(
                     'Líneas de texto detectadas de forma local por el motor OCR:',
-                    style: TextStyle(color: Colors.white60, fontSize: 13),
+                    style: TextStyle(color: Color(0xFF78909C), fontSize: 13),
                   ),
                   const SizedBox(height: 16),
                   Expanded(
                     child: ListView.separated(
                       controller: scrollController,
                       itemCount: textoLineas.length,
-                      separatorBuilder: (context, index) => const Divider(color: Colors.white10),
+                      separatorBuilder: (context, index) => const Divider(color: Color(0xFFE0E0E0)),
                       itemBuilder: (context, index) {
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: Text(
                             textoLineas[index],
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: Color(0xFF263238),
                               fontSize: 14,
-                              fontFamily: 'monospace', // Ideal para lectura de datos crudos
+                              fontFamily: 'monospace',
                             ),
                           ),
                         );
@@ -141,7 +139,7 @@ margin: const EdgeInsets.only(bottom: 16),                      decoration: BoxD
                   ElevatedButton(
                     onPressed: () => Navigator.pop(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0D6B68),
+                      backgroundColor: const Color(0xFF1565C0),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -160,8 +158,8 @@ margin: const EdgeInsets.only(bottom: 16),                      decoration: BoxD
   void _showSnackBar(String mensaje) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(mensaje),
-        backgroundColor: const Color(0xFF1E1E1E),
+        content: Text(mensaje, style: const TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFF263238),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -171,11 +169,12 @@ margin: const EdgeInsets.only(bottom: 16),                      decoration: BoxD
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: const Color(0xFFF7F9FC),
       appBar: AppBar(
         title: const Text('Escanear Factura', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color(0xFF1565C0),
+        foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: SafeArea(
@@ -189,45 +188,45 @@ margin: const EdgeInsets.only(bottom: 16),                      decoration: BoxD
                 child: Center(
                   child: _isProcessing
                       ? const Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CircularProgressIndicator(color: Color(0xFF0D6B68)),
-                            const SizedBox(height: 24),
-                            Text(
-                              'Analizando imagen...',
-                              style: TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.w500),
-                            ),
-                          ],
-                        )
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(color: Color(0xFF1565C0)),
+                      SizedBox(height: 24),
+                      Text(
+                        'Analizando imagen...',
+                        style: TextStyle(color: Color(0xFF78909C), fontSize: 16, fontWeight: FontWeight.w500),
+                      ),
+                    ],
+                  )
                       : Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(32),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF1E1E1E),
-                                shape: BoxShape.circle,
-                                border: Border.all(color: const Color(0xFF0D6B68).withOpacity(0.3), width: 2),
-                              ),
-                              child: const Icon(
-                                Icons.document_scanner_rounded,
-                                size: 80,
-                                color: Color(0xFF0D6B68),
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            const Text(
-                              'Detector de Caracteres',
-                              style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Toma una captura limpia para listar las cadenas detectadas.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.white60, fontSize: 14),
-                            ),
-                          ],
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(32),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: const Color(0xFFE0E0E0), width: 2),
                         ),
+                        child: const Icon(
+                          Icons.document_scanner_rounded,
+                          size: 80,
+                          color: Color(0xFF1565C0),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'Detector de Caracteres',
+                        style: TextStyle(color: Color(0xFF263238), fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Toma una captura limpia para listar las cadenas detectadas.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Color(0xFF78909C), fontSize: 14),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               if (!_isProcessing)
@@ -236,7 +235,7 @@ margin: const EdgeInsets.only(bottom: 16),                      decoration: BoxD
                   icon: const Icon(Icons.camera_alt_rounded),
                   label: const Text('ABRIR CÁMARA', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0D6B68),
+                    backgroundColor: const Color(0xFF1565C0),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
