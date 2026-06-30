@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'models/ocr_result.dart';
+import 'services/ocr_service.dart';
+import 'services/token_storage.dart';
 
 class CameraPage extends StatefulWidget {
   const CameraPage({super.key});
@@ -26,21 +28,15 @@ class _CameraPageState extends State<CameraPage> {
         _isProcessing = true;
       });
 
-      final inputImage = InputImage.fromFilePath(photo.path);
-      final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
-      final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
-
-      List<String> lineasDetectadas = [];
-
-      for (TextBlock block in recognizedText.blocks) {
-        for (TextLine line in block.lines) {
-          if (line.text.trim().isNotEmpty) {
-            lineasDetectadas.add(line.text.trim());
-          }
-        }
+      final idUsuario = await TokenStorage.getUserId();
+      if (idUsuario == null) {
+        throw Exception('No se encontró el usuario. Inicia sesión nuevamente.');
       }
 
-      await textRecognizer.close();
+      final resultado = await OcrService.subirImagen(
+        rutaImagen: photo.path,
+        idUsuario: idUsuario,
+      );
 
       setState(() {
         _isProcessing = false;
@@ -48,21 +44,17 @@ class _CameraPageState extends State<CameraPage> {
 
       if (!mounted) return;
 
-      if (lineasDetectadas.isNotEmpty) {
-        _showResultsModal(lineasDetectadas);
-      } else {
-        _showSnackBar("No se logró identificar ningún texto en la imagen.");
-      }
-
+      _showResultsModal(resultado);
     } catch (e) {
       setState(() {
         _isProcessing = false;
       });
-      _showSnackBar("Error al procesar el reconocimiento de texto.");
+      if (!mounted) return;
+      _showSnackBar(e.toString().replaceFirst('Exception: ', ''));
     }
   }
 
-  void _showResultsModal(List<String> textoLineas) {
+  void _showResultsModal(OcrUploadResult r) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -75,7 +67,7 @@ class _CameraPageState extends State<CameraPage> {
       ),
       builder: (BuildContext context) {
         return DraggableScrollableSheet(
-          initialChildSize: 0.6,
+          initialChildSize: 0.7,
           minChildSize: 0.4,
           maxChildSize: 0.9,
           expand: false,
@@ -97,42 +89,97 @@ class _CameraPageState extends State<CameraPage> {
                     ),
                   ),
                   Row(
+
                     children: [
-                      const Icon(Icons.abc_rounded, color: Color(0xFF1565C0), size: 32),
+                      const Icon(Icons.check_circle_rounded, color: Color(0xFF1565C0), size: 32),
                       const SizedBox(width: 12),
-                      Text(
-                        'Texto Identificado',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: const Color(0xFF263238),
-                          fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Text(
+                          'Factura Registrada',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: const Color(0xFF263238),
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Líneas de texto detectadas de forma local por el motor OCR:',
-                    style: TextStyle(color: Color(0xFF78909C), fontSize: 13),
+                  const SizedBox(height: 4),
+                  Text(
+                    'ID Factura: #${r.idFactura}',
+                    style: const TextStyle(color: Color(0xFF78909C), fontSize: 13),
                   ),
                   const SizedBox(height: 16),
                   Expanded(
-                    child: ListView.separated(
+                    child: ListView(
                       controller: scrollController,
-                      itemCount: textoLineas.length,
-                      separatorBuilder: (context, index) => const Divider(color: Color(0xFFE0E0E0)),
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: Text(
-                            textoLineas[index],
-                            style: const TextStyle(
-                              color: Color(0xFF263238),
-                              fontSize: 14,
-                              fontFamily: 'monospace',
-                            ),
+                      children: [
+                        Text(
+                          r.empresa.nombre.toUpperCase(),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF263238)),
+                        ),
+                        const SizedBox(height: 4),
+                        Text('RUC: ${r.empresa.ruc}',
+                            style: const TextStyle(fontSize: 13, color: Color(0xFF78909C))),
+                        Text(r.empresa.direccion,
+                            style: const TextStyle(fontSize: 12, color: Color(0xFF78909C))),
+                        const Divider(height: 24, color: Color(0xFFE0E0E0)),
+                        Text(
+                          '${r.factura.tipoComprobante}  ${r.factura.numeroComprobante}',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1565C0)),
+                        ),
+                        Text('Fecha: ${r.factura.fechaEmision}',
+                            style: const TextStyle(fontSize: 12, color: Color(0xFF78909C))),
+                        const Divider(height: 24, color: Color(0xFFE0E0E0)),
+                        ...r.detalles.map((d) => Padding(
+                          padding: const EdgeInsets.only(bottom: 6.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                flex: 6,
+                                child: Text(d.descripcion,
+                                    style: const TextStyle(fontSize: 13, color: Color(0xFF263238))),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  d.cantidad % 1 == 0
+                                      ? 'x${d.cantidad.toInt()}'
+                                      : 'x${d.cantidad}',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(fontSize: 12, color: Color(0xFF78909C)),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 3,
+                                child: Text(
+                                  'S/ ${d.subtotal.toStringAsFixed(2)}',
+                                  textAlign: TextAlign.end,
+                                  style: const TextStyle(
+                                      fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF263238)),
+                                ),
+                              ),
+                            ],
                           ),
-                        );
-                      },
+                        )),
+                        const Divider(height: 24, color: Color(0xFFE0E0E0)),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('TOTAL',
+                                style: TextStyle(
+                                    fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF263238))),
+                            Text(
+                              'S/ ${r.factura.total.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1565C0)),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -193,7 +240,7 @@ class _CameraPageState extends State<CameraPage> {
                       CircularProgressIndicator(color: Color(0xFF1565C0)),
                       SizedBox(height: 24),
                       Text(
-                        'Analizando imagen...',
+                        'Subiendo y procesando factura...',
                         style: TextStyle(color: Color(0xFF78909C), fontSize: 16, fontWeight: FontWeight.w500),
                       ),
                     ],
@@ -216,12 +263,12 @@ class _CameraPageState extends State<CameraPage> {
                       ),
                       const SizedBox(height: 24),
                       const Text(
-                        'Detector de Caracteres',
+                        'Escanear Comprobante',
                         style: TextStyle(color: Color(0xFF263238), fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
                       const Text(
-                        'Toma una captura limpia para listar las cadenas detectadas.',
+                        'Toma una foto clara del comprobante para registrarlo automáticamente.',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Color(0xFF78909C), fontSize: 14),
                       ),

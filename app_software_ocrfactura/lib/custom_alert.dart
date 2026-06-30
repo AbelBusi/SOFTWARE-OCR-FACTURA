@@ -1,16 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// Tipos de alerta disponibles.
 enum AlertType { success, error, warning, info }
 
-/// Sistema de alertas propio para reemplazar los SnackBar genéricos.
-///
-/// Soluciona el bug de encolamiento de Flutter: por defecto, si se llama
-/// a showSnackBar() varias veces seguidas, cada alerta nueva espera a que
-/// la anterior complete su animación de salida antes de mostrarse, lo que
-/// da la sensación de que las alertas "se quedan pegadas" o tardan en
-/// desaparecer. Aquí se limpia instantáneamente cualquier alerta anterior
-/// (sin esperar su animación) antes de mostrar la nueva.
 class CustomAlert {
   CustomAlert._();
 
@@ -22,9 +13,6 @@ class CustomAlert {
       }) {
     final messenger = ScaffoldMessenger.of(context);
 
-    // Clave del fix: clearSnackBars() elimina TODA la cola de alertas
-    // de forma instantánea (sin animación), a diferencia de
-    // hideCurrentSnackBar() que anima la salida y genera el retraso.
     messenger.clearSnackBars();
 
     final config = _configFor(type);
@@ -34,14 +22,14 @@ class CustomAlert {
         content: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(config.icon, color: Colors.white, size: 22),
+            Icon(config.icon, color: Colors.white, size: 20),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 message,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.bold,
                   fontSize: 14,
                   height: 1.3,
                 ),
@@ -52,12 +40,11 @@ class CustomAlert {
         backgroundColor: config.color,
         behavior: SnackBarBehavior.floating,
         duration: duration,
-        elevation: 4,
+        elevation: 0,
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-          side: BorderSide(color: config.color.withOpacity(0.4), width: 1),
+          borderRadius: BorderRadius.circular(4),
         ),
         dismissDirection: DismissDirection.horizontal,
       ),
@@ -79,13 +66,13 @@ class CustomAlert {
   static _AlertVisuals _configFor(AlertType type) {
     switch (type) {
       case AlertType.success:
-        return _AlertVisuals(Icons.check_circle_rounded, const Color(0xFF2E7D32));
+        return _AlertVisuals(Icons.check, const Color(0xFF1B5E20));
       case AlertType.error:
-        return _AlertVisuals(Icons.error_rounded, const Color(0xFFC62828));
+        return _AlertVisuals(Icons.error_outline, const Color(0xFFB71C1C));
       case AlertType.warning:
-        return _AlertVisuals(Icons.warning_rounded, const Color(0xFFEF6C00));
+        return _AlertVisuals(Icons.warning_amber_rounded, const Color(0xFFE65100));
       case AlertType.info:
-        return _AlertVisuals(Icons.info_rounded, const Color(0xFF1565C0));
+        return _AlertVisuals(Icons.info_outline, const Color(0xFF0D47A1));
     }
   }
 }
