@@ -42,6 +42,10 @@ class UsuarioService:
 
         return self.repository.crear(db, nuevo_usuario)
 
+    def obtener_perfil(self, db: Session, id_usuario: int):
+
+        return self.repository.obtener_por_id(db, id_usuario)
+
     def login(self, db: Session, correo: str, password: str):
 
         usuario = self.repository.obtener_por_correo(

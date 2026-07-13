@@ -6,7 +6,8 @@ from app.database import get_db
 from app.schemas.usuario import (
     UsuarioCreate,
     UsuarioResponse,
-    UsuarioLogin
+    UsuarioLogin,
+    UsuarioPerfilResponse
 )
 
 from app.schemas.auth import LoginResponse
@@ -62,3 +63,23 @@ def login(
             status_code=401,
             detail=str(e)
         )
+
+
+@router.get(
+    "/usuario/{id_usuario}",
+    response_model=UsuarioPerfilResponse
+)
+def obtener_perfil(
+    id_usuario: int,
+    db: Session = Depends(get_db)
+):
+
+    usuario = service.obtener_perfil(db, id_usuario)
+
+    if not usuario:
+        raise HTTPException(
+            status_code=404,
+            detail="Usuario no encontrado"
+        )
+
+    return usuario

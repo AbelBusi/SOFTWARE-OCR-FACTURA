@@ -24,6 +24,13 @@ class _ChatPageState extends State<ChatPage> {
 
   static const _azul = Color(0xFF1565C0);
 
+  static const _sugerencias = [
+    '¿Cuánto he gastado en total?',
+    '¿Cuántas facturas tengo?',
+    '¿Cuál es mi última factura?',
+    '¿En qué empresa gasté más?',
+  ];
+
   @override
   void dispose() {
     _controller.dispose();
@@ -41,6 +48,11 @@ class _ChatPageState extends State<ChatPage> {
         );
       }
     });
+  }
+
+  Future<void> _enviarTexto(String texto) async {
+    _controller.text = texto;
+    await _enviar();
   }
 
   Future<void> _enviar() async {
@@ -87,15 +99,32 @@ class _ChatPageState extends State<ChatPage> {
         backgroundColor: _azul,
         foregroundColor: Colors.white,
         elevation: 0,
+        titleSpacing: 0,
         title: Row(
           children: const [
             CircleAvatar(
-              radius: 16,
+              radius: 18,
               backgroundColor: Colors.white,
-              child: Icon(Icons.support_agent_rounded, color: _azul, size: 20),
+              child: Icon(Icons.support_agent_rounded, color: _azul, size: 22),
             ),
-            SizedBox(width: 10),
-            Text('Asistente', style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Asistente',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Row(
+                  children: [
+                    CircleAvatar(radius: 3.5, backgroundColor: Color(0xFF69F0AE)),
+                    SizedBox(width: 6),
+                    Text('En línea',
+                        style: TextStyle(
+                            fontSize: 11.5, color: Color(0xFFE3F2FD))),
+                  ],
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -114,8 +143,31 @@ class _ChatPageState extends State<ChatPage> {
               },
             ),
           ),
+          if (_mensajes.length <= 1 && !_cargando) _sugerenciasBar(),
           _barraEntrada(),
         ],
+      ),
+    );
+  }
+
+  Widget _sugerenciasBar() {
+    return Container(
+      width: double.infinity,
+      color: const Color(0xFFF7F9FC),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: _sugerencias.map((s) {
+          return ActionChip(
+            label: Text(s, style: const TextStyle(fontSize: 12, color: _azul)),
+            backgroundColor: Colors.white,
+            side: const BorderSide(color: Color(0xFFBBDEFB)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20)),
+            onPressed: () => _enviarTexto(s),
+          );
+        }).toList(),
       ),
     );
   }

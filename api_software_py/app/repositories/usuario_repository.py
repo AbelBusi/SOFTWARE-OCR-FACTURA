@@ -13,6 +13,14 @@ class UsuarioRepository:
             .first()
         )
 
+    def obtener_por_id(self, db: Session, id_usuario: int):
+
+        return (
+            db.query(Usuario)
+            .filter(Usuario.id_usuario == id_usuario)
+            .first()
+        )
+
     def obtener_por_dni(self, db: Session, dni: str):
 
         return (

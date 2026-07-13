@@ -7,7 +7,10 @@ import 'dashboard/widgets/stats_row.dart';
 import 'dashboard/widgets/weekly_chart_card.dart';
 import 'dashboard/widgets/alerts_card.dart';
 import 'dashboard/widgets/recent_invoices_card.dart';
+import 'dashboard/widgets/quick_actions_row.dart';
+import 'dashboard/widgets/type_distribution_card.dart';
 import 'history_view.dart';
+import 'chat_page.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
@@ -50,6 +53,28 @@ class _DashboardViewState extends State<DashboardView> {
       }
     }
     return conteos;
+  }
+
+  List<double> _montoPorDia(List<Factura> facturas) {
+    final montos = List<double>.filled(7, 0);
+    for (final f in facturas) {
+      final fecha = DateTime.tryParse(f.fechaEmision);
+      if (fecha != null) {
+        montos[fecha.weekday - 1] += f.total;
+      }
+    }
+    return montos;
+  }
+
+  Map<String, double> _montoPorTipo(List<Factura> facturas) {
+    final mapa = <String, double>{};
+    for (final f in facturas) {
+      final tipo = f.tipoComprobante.trim().isEmpty
+          ? 'Sin tipo'
+          : f.tipoComprobante.trim();
+      mapa[tipo] = (mapa[tipo] ?? 0) + f.total;
+    }
+    return mapa;
   }
 
   List<Factura> _alertasDeValidacion(List<Factura> facturas) {
@@ -115,13 +140,28 @@ class _DashboardViewState extends State<DashboardView> {
               children: [
                 SummaryHeader(total: total, cantidad: facturas.length),
                 const SizedBox(height: 16),
+                QuickActionsRow(
+                  onEscanear: () => Navigator.pushNamed(context, '/camera'),
+                  onHistorial: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const HistoryView()),
+                  ),
+                  onAsistente: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const ChatPage()),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 StatsRow(
                   facturas: facturasCount,
                   albaranes: albaranesCount,
                   otros: otrosCount,
                 ),
                 const SizedBox(height: 20),
-                WeeklyChartCard(conteosPorDia: _conteoPorDia(facturas)),
+                TypeDistributionCard(montoPorTipo: _montoPorTipo(facturas)),
+                const SizedBox(height: 20),
+                WeeklyChartCard(
+                  conteosPorDia: _conteoPorDia(facturas),
+                  montosPorDia: _montoPorDia(facturas),
+                ),
                 const SizedBox(height: 20),
                 const Text(
                   'Alertas y Validaciones',

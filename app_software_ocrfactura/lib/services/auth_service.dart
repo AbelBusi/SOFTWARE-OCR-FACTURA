@@ -3,11 +3,33 @@ import 'package:http/http.dart' as http;
 
 import '../api_config.dart';
 import '../models/login_response.dart';
+import '../models/usuario_perfil.dart';
+import 'token_storage.dart';
 
 
 class AuthService {
 
   final String baseUrl = ApiConfig.baseUrl;
+
+  Future<UsuarioPerfil> obtenerPerfil(int idUsuario) async {
+    final token = await TokenStorage.getToken();
+
+    final response = await http.get(
+      Uri.parse("$baseUrl/auth/usuario/$idUsuario"),
+      headers: {
+        "Content-Type": "application/json",
+        if (token != null) "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return UsuarioPerfil.fromJson(jsonDecode(utf8.decode(response.bodyBytes)));
+    } else if (response.statusCode == 401) {
+      throw Exception("Sesión expirada. Vuelve a iniciar sesión.");
+    } else {
+      throw Exception("No se pudo cargar tu perfil (${response.statusCode})");
+    }
+  }
 
   Future<LoginResponse> login(
       String correo,

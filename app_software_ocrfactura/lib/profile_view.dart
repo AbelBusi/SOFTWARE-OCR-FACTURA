@@ -1,15 +1,53 @@
 import 'package:flutter/material.dart';
+import 'models/factura.dart';
+import 'models/usuario_perfil.dart';
+import 'services/auth_service.dart';
+import 'services/factura_service.dart';
+import 'services/token_storage.dart';
 
-class ProfileView extends StatelessWidget {
+class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
 
+  @override
+  State<ProfileView> createState() => _ProfileViewState();
+}
+
+class _PerfilData {
+  final UsuarioPerfil perfil;
+  final List<Factura> facturas;
+  _PerfilData(this.perfil, this.facturas);
+}
+
+class _ProfileViewState extends State<ProfileView> {
   static const Color _azul = Color(0xFF1565C0);
   static const Color _texto = Color(0xFF263238);
   static const Color _gris = Color(0xFF78909C);
   static const Color _borde = Color(0xFFE0E0E0);
   static const Color _fondoPanel = Color(0xFFFAFAFA);
-  static const Color _ambar = Color(0xFFB26A00);
-  static const Color _fondoAmbar = Color(0xFFFFF3E0);
+
+  late Future<_PerfilData> _futuro;
+
+  @override
+  void initState() {
+    super.initState();
+    _futuro = _cargar();
+  }
+
+  Future<_PerfilData> _cargar() async {
+    final idUsuario = await TokenStorage.getUserId();
+    if (idUsuario == null) {
+      throw Exception('No se encontró el usuario. Inicia sesión nuevamente.');
+    }
+    final perfil = await AuthService().obtenerPerfil(idUsuario);
+    final facturas = await FacturaService.getFacturasUsuario(idUsuario);
+    return _PerfilData(perfil, facturas);
+  }
+
+  Future<void> _refrescar() async {
+    setState(() {
+      _futuro = _cargar();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,179 +56,150 @@ class ProfileView extends StatelessWidget {
         title: const Text('Mi Perfil', style: TextStyle(fontWeight: FontWeight.bold)),
         automaticallyImplyLeading: false,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // --- Encabezado de usuario ---
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: _fondoPanel,
-                border: Border.all(color: _borde),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Row(
+      body: RefreshIndicator(
+        onRefresh: _refrescar,
+        child: FutureBuilder<_PerfilData>(
+          future: _futuro,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return ListView(
                 children: [
-                  Stack(
-                    children: [
-                      Container(
-                        width: 72,
-                        height: 72,
-                        decoration: BoxDecoration(
-                          color: _azul,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Icon(Icons.person_rounded, size: 38, color: Colors.white),
+                  const SizedBox(height: 120),
+                  const Icon(Icons.error_outline_rounded, size: 46, color: _gris),
+                  const SizedBox(height: 12),
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Text(
+                        '${snapshot.error}'.replaceFirst('Exception: ', ''),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: _gris),
                       ),
-                      Positioned(
-                        bottom: -4,
-                        right: -4,
-                        child: Container(
-                          width: 26,
-                          height: 26,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(color: _azul, width: 1.5),
-                            borderRadius: BorderRadius.circular(3),
-                          ),
-                          child: const Icon(Icons.edit_rounded, size: 14, color: _azul),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(width: 18),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Cesar Abel',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: _texto),
-                        ),
-                        const SizedBox(height: 3),
-                        const Text(
-                          'Ingeniería de Sistemas • UTP',
-                          style: TextStyle(color: _gris, fontSize: 13, fontWeight: FontWeight.w500),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(color: _azul),
-                            borderRadius: BorderRadius.circular(3),
-                          ),
-                          child: const Text(
-                            'CUENTA VERIFICADA',
-                            style: TextStyle(
-                              color: _azul,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
                   ),
                 ],
-              ),
-            ),
+              );
+            }
 
-            const SizedBox(height: 20),
+            final data = snapshot.data!;
+            final perfil = data.perfil;
+            final total =
+                data.facturas.fold<double>(0, (s, f) => s + f.total);
 
-            // --- Estadísticas rápidas ---
-            Row(
+            return ListView(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
               children: [
-                Expanded(child: _buildStat('escaneados', '0')),
-                const SizedBox(width: 12),
-                Expanded(child: _buildStat('Sesiones activas', '1')),
-                const SizedBox(width: 12),
-                Expanded(child: _buildStat('Última act.', 'Hoy')),
-              ],
-            ),
-
-            const SizedBox(height: 28),
-
-            // --- Información de cuenta ---
-            _buildSectionHeader('INFORMACIÓN DE CUENTA'),
-            const SizedBox(height: 10),
-            _buildPanel([
-              _buildProfileItem(Icons.badge_rounded, 'Rol de Usuario', 'Administrador de Sistema'),
-              _buildProfileItem(Icons.domain_rounded, 'Sede', 'Chiclayo'),
-              _buildProfileItem(Icons.verified_user_rounded, 'Validación SUNAT', 'API Key Activa'),
-              _buildProfileItem(Icons.security_rounded, 'Seguridad', 'Token JWT Firme'),
-            ]),
-
-            const SizedBox(height: 28),
-
-            // --- Preferencias ---
-            _buildSectionHeader('PREFERENCIAS'),
-            const SizedBox(height: 10),
-            _buildPanel([
-              _buildToggleItem(Icons.notifications_rounded, 'Notificaciones push', true),
-              _buildToggleItem(Icons.fingerprint_rounded, 'Desbloqueo biométrico', false),
-              _buildLinkItem(context, Icons.language_rounded, 'Idioma', 'Español'),
-            ]),
-
-            const SizedBox(height: 28),
-
-            // --- Próximamente / en desarrollo ---
-            _buildSectionHeader('PRÓXIMAMENTE'),
-            const SizedBox(height: 10),
-            _buildPanel([
-              _buildComingSoonItem(context, Icons.history_rounded, 'Historial de actividad'),
-              _buildComingSoonItem(context, Icons.cloud_upload_rounded, 'Respaldo en la nube'),
-              _buildComingSoonItem(context, Icons.face_retouching_natural_rounded, 'Verificación facial'),
-              _buildComingSoonItem(context, Icons.family_restroom_rounded, 'Perfiles vinculados'),
-            ]),
-
-            const SizedBox(height: 28),
-
-            // --- Acciones ---
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.edit_outlined, size: 18),
-                    label: const Text('Editar perfil'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: _azul,
-                      side: const BorderSide(color: _azul),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                    ),
-                  ),
+                _header(perfil),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(child: _stat('Comprobantes', '${data.facturas.length}')),
+                    const SizedBox(width: 12),
+                    Expanded(child: _stat('Total', 'S/ ${total.toStringAsFixed(2)}')),
+                    const SizedBox(width: 12),
+                    Expanded(child: _stat('Miembro desde', perfil.anioRegistro)),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.logout_rounded, size: 18),
-                    label: const Text('Cerrar sesión'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFFC62828),
-                      side: const BorderSide(color: Color(0xFFC62828)),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                    ),
-                  ),
-                ),
+                const SizedBox(height: 28),
+                _sectionHeader('INFORMACIÓN DE CUENTA'),
+                const SizedBox(height: 10),
+                _panel([
+                  _item(Icons.badge_rounded, 'DNI', perfil.dni.isEmpty ? '-' : perfil.dni),
+                  _item(Icons.email_rounded, 'Correo', perfil.correo),
+                  _item(Icons.cake_rounded, 'Fecha de nacimiento', perfil.fechaNacimientoCorta),
+                  _item(Icons.event_available_rounded, 'Miembro desde',
+                      perfil.fechaRegistroCorta,
+                      esUltimo: true),
+                ]),
               ],
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
   }
 
-  // ---------- Helpers ----------
+  Widget _header(UsuarioPerfil perfil) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: _fondoPanel,
+        border: Border.all(color: _borde),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 72,
+            height: 72,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: _azul,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              perfil.iniciales,
+              style: const TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(width: 18),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  perfil.nombreCompleto,
+                  style: const TextStyle(
+                      fontSize: 19, fontWeight: FontWeight.bold, color: _texto),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  perfil.correo,
+                  style: const TextStyle(
+                      color: _gris, fontSize: 13, fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: _azul),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.verified_rounded, size: 12, color: _azul),
+                      SizedBox(width: 4),
+                      Text(
+                        'CUENTA VERIFICADA',
+                        style: TextStyle(
+                          color: _azul,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _sectionHeader(String title) {
     return Text(
       title,
       style: const TextStyle(
@@ -202,160 +211,70 @@ class ProfileView extends StatelessWidget {
     );
   }
 
-  Widget _buildPanel(List<Widget> children) {
+  Widget _panel(List<Widget> children) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border.all(color: _borde),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(children: children),
     );
   }
 
-  Widget _buildStat(String label, String value) {
+  Widget _stat(String label, String value) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
       decoration: BoxDecoration(
         color: _fondoPanel,
         border: Border.all(color: _borde),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
-          Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _texto)),
+          Text(value,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  fontSize: 15, fontWeight: FontWeight.bold, color: _texto)),
           const SizedBox(height: 4),
           Text(
             label,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: _gris, fontSize: 11, fontWeight: FontWeight.w500),
+            style: const TextStyle(
+                color: _gris, fontSize: 11, fontWeight: FontWeight.w500),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildProfileItem(IconData icon, String title, String value) {
+  Widget _item(IconData icon, String title, String value, {bool esUltimo = false}) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: _borde, width: 1)),
+      decoration: BoxDecoration(
+        border: esUltimo
+            ? null
+            : const Border(bottom: BorderSide(color: _borde, width: 1)),
       ),
       child: Row(
         children: [
           Icon(icon, color: _azul, size: 22),
           const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: const TextStyle(color: _gris, fontSize: 12)),
-              const SizedBox(height: 2),
-              Text(
-                value,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: _texto),
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(color: _gris, fontSize: 12)),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 14, color: _texto),
+                ),
+              ],
+            ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildToggleItem(IconData icon, String title, bool valorInicial) {
-    return StatefulBuilder(
-      builder: (context, setState) {
-        bool activo = valorInicial;
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          decoration: const BoxDecoration(
-            border: Border(bottom: BorderSide(color: _borde, width: 1)),
-          ),
-          child: Row(
-            children: [
-              Icon(icon, color: _azul, size: 22),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: _texto)),
-              ),
-              Switch(
-                value: activo,
-                activeColor: _azul,
-                onChanged: (val) => setState(() => activo = val),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildLinkItem(BuildContext context, IconData icon, String title, String value) {
-    return InkWell(
-      onTap: () {},
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Icon(icon, color: _azul, size: 22),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: _texto)),
-            ),
-            Text(value, style: const TextStyle(color: _gris, fontSize: 13)),
-            const SizedBox(width: 6),
-            const Icon(Icons.chevron_right_rounded, color: _gris, size: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildComingSoonItem(BuildContext context, IconData icon, String title) {
-    return InkWell(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$title está en desarrollo', style: const TextStyle(fontWeight: FontWeight.w500)),
-            backgroundColor: _texto,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-          ),
-        );
-      },
-      child: Opacity(
-        opacity: 0.55,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: const BoxDecoration(
-            border: Border(bottom: BorderSide(color: _borde, width: 1)),
-          ),
-          child: Row(
-            children: [
-              Icon(icon, color: _gris, size: 22),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: _texto)),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: _fondoAmbar,
-                  border: Border.all(color: _ambar),
-                  borderRadius: BorderRadius.circular(3),
-                ),
-                child: const Text(
-                  'EN DESARROLLO',
-                  style: TextStyle(
-                    color: _ambar,
-                    fontSize: 9,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.4,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
