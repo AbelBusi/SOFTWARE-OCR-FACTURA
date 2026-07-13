@@ -4,6 +4,8 @@ import 'models/ocr_result.dart';
 import 'services/factura_service.dart';
 import 'export_helper.dart';
 import 'review_invoice_page.dart';
+import 'image_viewer_page.dart';
+import 'l10n/app_localizations.dart';
 
 class InvoiceDetailSheet {
   InvoiceDetailSheet._();
@@ -221,6 +223,28 @@ class _InvoiceDetailContentState extends State<_InvoiceDetailContent> {
                 ),
               ),
               const SizedBox(height: 20),
+              // Nuevo: ver la imagen original de la factura.
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          ImageViewerPage(idFactura: widget.idFactura),
+                    ),
+                  ),
+                  icon: const Icon(Icons.image_outlined, size: 18),
+                  label: Text(context.tr('view_image').toUpperCase()),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF1565C0),
+                    side: const BorderSide(color: Color(0xFF1565C0)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(

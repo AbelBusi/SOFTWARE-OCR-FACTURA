@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 
 class CameraIdleView extends StatelessWidget {
   final VoidCallback onTomarFoto;
+  final VoidCallback onAgregarManual;
 
-  const CameraIdleView({super.key, required this.onTomarFoto});
+  const CameraIdleView({
+    super.key,
+    required this.onTomarFoto,
+    required this.onAgregarManual,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +59,20 @@ class CameraIdleView extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             elevation: 0,
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Nuevo: registro manual de factura (sin OCR).
+        OutlinedButton.icon(
+          onPressed: onAgregarManual,
+          icon: const Icon(Icons.edit_note_rounded),
+          label: const Text('AGREGAR MANUALMENTE',
+              style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: const Color(0xFF1565C0),
+            side: const BorderSide(color: Color(0xFF1565C0)),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           ),
         ),
       ],

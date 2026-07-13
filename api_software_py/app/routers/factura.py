@@ -1,8 +1,9 @@
 import io
+import os
 from datetime import date, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, FileResponse
 from sqlalchemy.orm import Session
 
 
@@ -256,6 +257,37 @@ def exportar_factura_individual(
         headers={"Content-Disposition": f"attachment; filename={nombre}"}
     )
 
+
+
+# Nuevo: entrega la imagen original asociada a una factura (reutiliza factura.imagen_url).
+@router.get(
+    "/{id_factura}/imagen"
+)
+def obtener_imagen_factura(
+
+    id_factura: int,
+
+    db: Session = Depends(get_db)
+
+):
+
+    factura = service.obtener_por_id(db, id_factura)
+
+    if not factura or not factura.imagen_url:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Esta factura no tiene imagen asociada."
+        )
+
+    if not os.path.exists(factura.imagen_url):
+
+        raise HTTPException(
+            status_code=404,
+            detail="El archivo de imagen no está disponible."
+        )
+
+    return FileResponse(factura.imagen_url)
 
 
 @router.put(

@@ -73,6 +73,50 @@ class _CameraPageState extends State<CameraPage> {
     }
   }
 
+  // Nuevo: registro manual reutilizando ReviewInvoicePage con un formulario vacío.
+  Future<void> _agregarManual() async {
+    final idUsuario = await TokenStorage.getUserId();
+    if (idUsuario == null) {
+      _showSnackBar('No se encontró el usuario. Inicia sesión nuevamente.');
+      return;
+    }
+
+    final vacio = OcrUploadResult(
+      idFactura: 0,
+      imagenUrl: '',
+      confianza: 0,
+      empresa: OcrEmpresa(ruc: '', nombre: '', direccion: ''),
+      factura: OcrFacturaInfo(
+        tipoComprobante: '',
+        numeroComprobante: '',
+        fechaEmision: '',
+        subtotal: 0,
+        igv: 0,
+        total: 0,
+        observaciones: '',
+      ),
+      detalles: const [],
+    );
+
+    if (!mounted) return;
+
+    final guardado = await Navigator.push<OcrUploadResult>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ReviewInvoicePage(
+          extraido: vacio,
+          idUsuario: idUsuario,
+          camposObligatorios: true,
+          titulo: 'Agregar Factura',
+        ),
+      ),
+    );
+
+    if (guardado != null && mounted) {
+      ScanResultSheet.show(context, guardado);
+    }
+  }
+
   void _showSnackBar(String mensaje) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -100,7 +144,10 @@ class _CameraPageState extends State<CameraPage> {
           padding: const EdgeInsets.all(24.0),
           child: _isProcessing
               ? const Center(child: ProcessingAnimation())
-              : CameraIdleView(onTomarFoto: _takePicture),
+              : CameraIdleView(
+                  onTomarFoto: _takePicture,
+                  onAgregarManual: _agregarManual,
+                ),
         ),
       ),
     );

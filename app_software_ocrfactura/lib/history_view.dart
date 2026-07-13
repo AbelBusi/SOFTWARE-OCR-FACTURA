@@ -5,6 +5,7 @@ import 'services/factura_service.dart';
 import 'services/token_storage.dart';
 import 'invoice_detail_sheet.dart';
 import 'export_helper.dart';
+import 'image_viewer_page.dart';
 import 'l10n/app_localizations.dart';
 
 class HistoryView extends StatefulWidget {
@@ -253,11 +254,29 @@ class _HistoryViewState extends State<HistoryView> {
                                 fontSize: 12, color: Color(0xFF78909C)),
                           ),
                           isThreeLine: true,
-                          trailing: Text(
-                            'S/ ${f.total.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF263238)),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Nuevo: ver la imagen original de la factura.
+                              IconButton(
+                                tooltip: context.tr('view_image'),
+                                visualDensity: VisualDensity.compact,
+                                icon: const Icon(Icons.image_outlined,
+                                    color: Color(0xFF1565C0), size: 22),
+                                onPressed: () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        ImageViewerPage(idFactura: f.idFactura),
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                'S/ ${f.total.toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF263238)),
+                              ),
+                            ],
                           ),
                         ),
                       );

@@ -11,6 +11,9 @@ class ReviewInvoicePage extends StatefulWidget {
   final int? idUsuario;
   final int? idFactura;
   final double? confianza;
+  // Nuevo (registro manual): exige campos clave y permite un título propio.
+  final bool camposObligatorios;
+  final String? titulo;
 
   const ReviewInvoicePage({
     super.key,
@@ -18,6 +21,8 @@ class ReviewInvoicePage extends StatefulWidget {
     this.idUsuario,
     this.idFactura,
     this.confianza,
+    this.camposObligatorios = false,
+    this.titulo,
   });
 
   bool get esEdicion => idFactura != null;
@@ -99,6 +104,14 @@ class _ReviewInvoicePageState extends State<ReviewInvoicePage> {
     if (value == null || value.trim().isEmpty) return null; // vacío = 0
     if (double.tryParse(value.trim().replaceAll(',', '.')) == null) {
       return 'Número inválido';
+    }
+    return null;
+  }
+
+  // Solo aplica en registro manual (camposObligatorios): evita guardar vacío.
+  String? _validarObligatorio(String? value) {
+    if (widget.camposObligatorios && (value == null || value.trim().isEmpty)) {
+      return 'Campo obligatorio';
     }
     return null;
   }
@@ -253,7 +266,9 @@ class _ReviewInvoicePageState extends State<ReviewInvoicePage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F9FC),
       appBar: AppBar(
-        title: Text(widget.esEdicion ? 'Editar Factura' : 'Revisar Factura',
+        title: Text(
+            widget.titulo ??
+                (widget.esEdicion ? 'Editar Factura' : 'Revisar Factura'),
             style: const TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         backgroundColor: const Color(0xFF1565C0),
@@ -274,21 +289,25 @@ class _ReviewInvoicePageState extends State<ReviewInvoicePage> {
               const SizedBox(height: 16),
               _seccion('Empresa', Icons.storefront_rounded, [
                 _campo(_rucCtrl, 'RUC'),
-                _campo(_nombreCtrl, 'Razón social'),
+                _campo(_nombreCtrl, 'Razón social',
+                    validator: _validarObligatorio),
                 _campo(_direccionCtrl, 'Dirección'),
               ]),
               const SizedBox(height: 16),
               _seccion('Comprobante', Icons.receipt_long_rounded, [
-                _campo(_tipoCtrl, 'Tipo de comprobante'),
-                _campo(_numeroCtrl, 'Número'),
+                _campo(_tipoCtrl, 'Tipo de comprobante',
+                    validator: _validarObligatorio),
+                _campo(_numeroCtrl, 'Número',
+                    validator: _validarObligatorio),
                 _campo(_fechaCtrl, 'Fecha de emisión (AAAA-MM-DD)',
-                    validator: _validarFecha),
+                    validator: (v) => _validarObligatorio(v) ?? _validarFecha(v)),
                 _campo(_subtotalCtrl, 'Subtotal',
                     numerico: true, validator: _validarNumero),
                 _campo(_igvCtrl, 'IGV',
                     numerico: true, validator: _validarNumero),
                 _campo(_totalCtrl, 'Total',
-                    numerico: true, validator: _validarNumero),
+                    numerico: true,
+                    validator: (v) => _validarObligatorio(v) ?? _validarNumero(v)),
                 _campo(_obsCtrl, 'Observaciones'),
               ]),
               const SizedBox(height: 16),

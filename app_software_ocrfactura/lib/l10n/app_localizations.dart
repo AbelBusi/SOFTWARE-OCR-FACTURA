@@ -110,6 +110,9 @@ class AppLocalizations {
       'suggestion_top': '¿En qué empresa gasté más?',
       'session_expired': 'Sesión expirada. Vuelve a iniciar sesión.',
       'user_not_found': 'No se encontró el usuario. Inicia sesión nuevamente.',
+      'view_image': 'Ver imagen',
+      'invoice_image': 'Imagen de la factura',
+      'no_image': 'No hay imagen disponible para esta factura.',
     },
     'en': {
       'login_subtitle': 'Enter your credentials to continue',
@@ -190,6 +193,9 @@ class AppLocalizations {
       'suggestion_top': 'Which company did I spend the most on?',
       'session_expired': 'Session expired. Please sign in again.',
       'user_not_found': 'User not found. Please sign in again.',
+      'view_image': 'View image',
+      'invoice_image': 'Invoice image',
+      'no_image': 'No image available for this invoice.',
     },
     'pt': {
       'login_subtitle': 'Digite suas credenciais para continuar',
@@ -270,6 +276,9 @@ class AppLocalizations {
       'suggestion_top': 'Em qual empresa gastei mais?',
       'session_expired': 'Sessão expirada. Entre novamente.',
       'user_not_found': 'Usuário não encontrado. Entre novamente.',
+      'view_image': 'Ver imagem',
+      'invoice_image': 'Imagem da fatura',
+      'no_image': 'Não há imagem disponível para esta fatura.',
     },
   };
 }
