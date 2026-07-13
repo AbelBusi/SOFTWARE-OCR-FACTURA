@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../api_config.dart';
 import '../models/ocr_result.dart';
 import 'token_storage.dart';
 
 class OcrService {
-  static const String baseUrl = "http://192.168.18.4:8000";
+  static const String baseUrl = ApiConfig.baseUrl;
 
   static Future<OcrUploadResult> subirImagen({
     required String rutaImagen,
@@ -33,14 +34,55 @@ class OcrService {
     } else if (response.statusCode == 401) {
       throw Exception('Sesión expirada. Vuelve a iniciar sesión.');
     } else {
-      String mensaje = 'Error al procesar la imagen (${response.statusCode})';
-      try {
-        final body = jsonDecode(utf8.decode(response.bodyBytes));
-        if (body is Map && body['detail'] != null) {
-          mensaje = body['detail'].toString();
-        }
-      } catch (_) {}
-      throw Exception(mensaje);
+      throw Exception(_mensajeError(response, 'Error al procesar la imagen'));
     }
+  }
+
+  /// Guarda la factura con los datos ya revisados y corregidos por el usuario.
+  static Future<OcrUploadResult> guardarFactura({
+    required int idUsuario,
+    required String imagenUrl,
+    required Map<String, dynamic> datos,
+  }) async {
+    final token = await TokenStorage.getToken();
+
+    final uri = Uri.parse('$baseUrl/ocr/guardar');
+
+    final body = {
+      'id_usuario': idUsuario,
+      'imagen_url': imagenUrl,
+      'empresa': datos['empresa'],
+      'factura': datos['factura'],
+      'detalles': datos['detalles'],
+    };
+
+    final response = await http.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      return OcrUploadResult.fromJson(data as Map<String, dynamic>);
+    } else if (response.statusCode == 401) {
+      throw Exception('Sesión expirada. Vuelve a iniciar sesión.');
+    } else {
+      throw Exception(_mensajeError(response, 'Error al guardar la factura'));
+    }
+  }
+
+  static String _mensajeError(http.Response response, String fallback) {
+    String mensaje = '$fallback (${response.statusCode})';
+    try {
+      final body = jsonDecode(utf8.decode(response.bodyBytes));
+      if (body is Map && body['detail'] != null) {
+        mensaje = body['detail'].toString();
+      }
+    } catch (_) {}
+    return mensaje;
   }
 }

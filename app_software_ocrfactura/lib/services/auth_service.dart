@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+import '../api_config.dart';
 import '../models/login_response.dart';
 
 
 class AuthService {
 
-  final String baseUrl = "http://192.168.18.4:8000";
+  final String baseUrl = ApiConfig.baseUrl;
 
   Future<LoginResponse> login(
       String correo,

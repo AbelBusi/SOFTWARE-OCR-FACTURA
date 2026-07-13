@@ -12,6 +12,16 @@ class OcrEmpresa {
       direccion: (json['direccion'] ?? '').toString(),
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'ruc': ruc,
+        'nombre': nombre,
+        'direccion': direccion,
+      };
+
+  /// RUC apto para mostrar al usuario: oculta los identificadores internos
+  /// `SINRUC-*` que asigna el backend a facturas sin RUC real.
+  String get rucVisible => ruc.startsWith('SINRUC-') ? '' : ruc;
 }
 
 class OcrFacturaInfo {
@@ -44,6 +54,15 @@ class OcrFacturaInfo {
       total: toDouble(json['total']),
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'tipo_comprobante': tipoComprobante,
+        'numero_comprobante': numeroComprobante,
+        'fecha_emision': fechaEmision,
+        'subtotal': subtotal,
+        'igv': igv,
+        'total': total,
+      };
 }
 
 class OcrDetalleItem {
@@ -70,16 +89,25 @@ class OcrDetalleItem {
       subtotal: toDouble(json['subtotal']),
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'descripcion': descripcion,
+        'cantidad': cantidad,
+        'precio_unitario': precioUnitario,
+        'subtotal': subtotal,
+      };
 }
 
 class OcrUploadResult {
   final int idFactura;
+  final String imagenUrl;
   final OcrEmpresa empresa;
   final OcrFacturaInfo factura;
   final List<OcrDetalleItem> detalles;
 
   OcrUploadResult({
     required this.idFactura,
+    required this.imagenUrl,
     required this.empresa,
     required this.factura,
     required this.detalles,
@@ -91,6 +119,7 @@ class OcrUploadResult {
 
     return OcrUploadResult(
       idFactura: json['id_factura'] ?? 0,
+      imagenUrl: (json['imagen_url'] ?? '').toString(),
       empresa: OcrEmpresa.fromJson(Map<String, dynamic>.from(data['empresa'] ?? {})),
       factura: OcrFacturaInfo.fromJson(Map<String, dynamic>.from(data['factura'] ?? {})),
       detalles: (rawDetalles is List)

@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../api_config.dart';
 import '../models/factura.dart';
 import 'token_storage.dart';
 import '../models/factura_detalle.dart';
 
 class FacturaService {
-  static const String baseUrl = "http://192.168.18.4:8000";
+  static const String baseUrl = ApiConfig.baseUrl;
 
   static Future<List<Factura>> getFacturasUsuario(int idUsuario) async {
     final token = await TokenStorage.getToken();

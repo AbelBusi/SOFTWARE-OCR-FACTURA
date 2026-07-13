@@ -13,6 +13,11 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  static const Color _azul = Color(0xFF1565C0);
+  static const Color _texto = Color(0xFF263238);
+  static const Color _gris = Color(0xFF78909C);
+  static const Color _borde = Color(0xFFE0E0E0);
+
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
@@ -76,9 +81,8 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
+      backgroundColor: const Color(0xFFF7F9FC),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -87,26 +91,30 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Icon(
+                const Icon(
                   Icons.document_scanner_rounded,
                   size: 72,
-                  color: theme.colorScheme.primary,
+                  color: _azul,
                 ),
                 const SizedBox(height: 16),
-                Text(
+                const Text(
                   "OCR FACTURA",
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.5,
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                    color: _texto,
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(
+                const Text(
                   "Ingresa tus credenciales para continuar",
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                  style: TextStyle(
+                    color: _gris,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -114,11 +122,22 @@ class _LoginPageState extends State<LoginPage> {
                   controller: _emailController,
                   enabled: !_isLoading,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: "Correo electrónico",
-                    prefixIcon: Icon(Icons.email_outlined),
+                    prefixIcon: const Icon(Icons.email_outlined, color: _gris),
+                    filled: true,
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(14)),
+                      borderRadius: BorderRadius.circular(4),
+                      borderSide: const BorderSide(color: _borde),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      borderSide: const BorderSide(color: _borde),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      borderSide: const BorderSide(color: _azul, width: 1.5),
                     ),
                   ),
                 ),
@@ -127,26 +146,36 @@ class _LoginPageState extends State<LoginPage> {
                   controller: _passwordController,
                   enabled: !_isLoading,
                   obscureText: true,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: "Contraseña",
-                    prefixIcon: Icon(Icons.lock_outline_rounded),
+                    prefixIcon: const Icon(Icons.lock_outline_rounded, color: _gris),
+                    filled: true,
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(14)),
+                      borderRadius: BorderRadius.circular(4),
+                      borderSide: const BorderSide(color: _borde),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      borderSide: const BorderSide(color: _borde),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      borderSide: const BorderSide(color: _azul, width: 1.5),
                     ),
                   ),
                 ),
                 const SizedBox(height: 32),
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
+                SizedBox(
                   height: 54,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleLogin,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      foregroundColor: theme.colorScheme.onPrimary,
-                      disabledBackgroundColor: theme.colorScheme.primary.withOpacity(0.8),
+                      backgroundColor: _azul,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: _azul.withOpacity(0.6),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(4),
                       ),
                       elevation: 0,
                     ),
@@ -177,7 +206,7 @@ class _LoginPageState extends State<LoginPage> {
                     Navigator.pushNamed(context, '/register');
                   },
                   style: TextButton.styleFrom(
-                    foregroundColor: theme.colorScheme.primary,
+                    foregroundColor: _azul,
                   ),
                   child: const Text(
                     "¿No tienes cuenta? Regístrate aquí",

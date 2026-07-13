@@ -1,6 +1,9 @@
+import 'dart:io';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:image/image.dart' as img;
 import 'slide_page_route.dart';
 import 'navigation_container.dart';
 import 'custom_alert.dart';
@@ -30,6 +33,9 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _isSubmitting = false;
   DateTime? _fechaNacimiento;
 
+  // Aviso (no bloqueante) de posible foto tomada a una pantalla
+  bool _posibleFotoPantalla = false;
+
   Future<void> _scanDniDocument() async {
     try {
       final XFile? photo = await _picker.pickImage(
@@ -41,8 +47,13 @@ class _RegisterPageState extends State<RegisterPage> {
 
       setState(() {
         _isScanning = true;
+        _posibleFotoPantalla = false;
       });
 
+      // 1. Heurística: ¿parece foto de una pantalla (moiré / sobreexposición)?
+      final bool sospechoso = await _pareceFotoDePantalla(photo.path);
+
+      // 2. OCR normal
       final inputImage = InputImage.fromFilePath(photo.path);
       final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
       final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
@@ -51,6 +62,7 @@ class _RegisterPageState extends State<RegisterPage> {
       List<String> lineasValidas = [];
 
       final RegExp dniRegex = RegExp(r'\b\d{8}\b');
+      final RegExp fechaRegex = RegExp(r'\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})\b');
 
       for (TextBlock block in recognizedText.blocks) {
         for (TextLine line in block.lines) {
@@ -61,6 +73,7 @@ class _RegisterPageState extends State<RegisterPage> {
         }
       }
 
+      // --- Detección de DNI, nombres y apellidos (igual que antes) ---
       for (int i = 0; i < lineasValidas.length; i++) {
         String lineaLimpia = lineasValidas[i].replaceAll(' ', '');
 
@@ -96,18 +109,38 @@ class _RegisterPageState extends State<RegisterPage> {
         }
       }
 
+      // --- Detección de fecha de nacimiento ---
+      final DateTime? fechaDetectada = _extraerFechaNacimiento(lineasValidas, fechaRegex);
+      if (fechaDetectada != null) {
+        setState(() {
+          _fechaNacimiento = fechaDetectada;
+          _fechaNacimientoController.text =
+          "${fechaDetectada.year.toString().padLeft(4, '0')}-${fechaDetectada.month.toString().padLeft(2, '0')}-${fechaDetectada.day.toString().padLeft(2, '0')}";
+        });
+      }
+
       await textRecognizer.close();
 
       setState(() {
         _isScanning = false;
+        _posibleFotoPantalla = sospechoso;
       });
 
       if (dniDetectado != null) {
-        _showNotification("Datos del DNI vinculados.");
+        _showNotification(
+          fechaDetectada != null
+              ? "Datos del DNI vinculados, incluida la fecha de nacimiento."
+              : "Datos del DNI vinculados. Verifica la fecha de nacimiento.",
+        );
       } else {
         _showNotification("No se detectó el DNI. Intenta con más luz.");
       }
 
+      if (sospechoso) {
+        _showNotification(
+          "La imagen parece tomada desde una pantalla. Si tienes el DNI físico, vuelve a escanear.",
+        );
+      }
     } catch (e) {
       setState(() {
         _isScanning = false;
@@ -116,11 +149,113 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
+  /// Busca la fecha de nacimiento cerca de la palabra "NACIMIENTO".
+  /// Si no encuentra la etiqueta, usa la fecha más antigua de todas las
+  /// encontradas (en un DNI suele haber nacimiento / emisión / caducidad,
+  /// y nacimiento es siempre la más antigua).
+  DateTime? _extraerFechaNacimiento(List<String> lineas, RegExp fechaRegex) {
+    DateTime? _parsear(String texto) {
+      final m = fechaRegex.firstMatch(texto);
+      if (m == null) return null;
+      int d = int.tryParse(m.group(1) ?? '') ?? 0;
+      int mo = int.tryParse(m.group(2) ?? '') ?? 0;
+      int y = int.tryParse(m.group(3) ?? '') ?? 0;
+      if (y < 100) y += (y < 30 ? 2000 : 1900);
+      if (d < 1 || d > 31 || mo < 1 || mo > 12) return null;
+      try {
+        final fecha = DateTime(y, mo, d);
+        final hoy = DateTime.now();
+        if (fecha.isAfter(hoy) || fecha.year < 1900) return null;
+        return fecha;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    // 1. Buscar por etiqueta "NACIMIENTO"
+    for (int i = 0; i < lineas.length; i++) {
+      if (lineas[i].toUpperCase().contains('NACIMIENTO')) {
+        // La fecha puede estar en la misma línea o en las 2 siguientes
+        for (int j = i; j < min(i + 3, lineas.length); j++) {
+          final fecha = _parsear(lineas[j]);
+          if (fecha != null) return fecha;
+        }
+      }
+    }
+
+    // 2. Fallback: tomar la fecha más antigua entre todas las detectadas
+    DateTime? masAntigua;
+    for (final linea in lineas) {
+      final fecha = _parsear(linea);
+      if (fecha != null && (masAntigua == null || fecha.isBefore(masAntigua))) {
+        masAntigua = fecha;
+      }
+    }
+    return masAntigua;
+  }
+
+  /// Heurística local (sin servidor, sin costo) para detectar si la foto
+  /// fue tomada a una pantalla en vez de al documento físico.
+  ///
+  /// IMPORTANTE: esto NO es un sistema de anti-spoofing certificado.
+  /// Detecta dos señales típicas de fotografiar una pantalla:
+  ///   - patrón moiré / ruido de alta frecuencia (choque de rejillas de píxeles)
+  ///   - sobreexposición / poca variación de brillo (retroiluminación)
+  /// Un atacante cuidadoso (buena resolución, ángulo, distancia) puede evadirla.
+  /// Para producción con requisitos serios de seguridad, se recomienda un
+  /// SDK dedicado de verificación de documentos (Regula, Sumsub, Onfido, etc.)
+  Future<bool> _pareceFotoDePantalla(String path) async {
+    try {
+      final bytes = await File(path).readAsBytes();
+      final original = img.decodeImage(bytes);
+      if (original == null) return false;
+
+      final resized = img.copyResize(original, width: 300);
+      final gray = img.grayscale(resized);
+
+      int edgeSum = 0;
+      int pares = 0;
+      int sumLum = 0;
+      int sumSq = 0;
+      int sobreexpuestos = 0;
+      final total = gray.width * gray.height;
+
+      for (int y = 0; y < gray.height; y++) {
+        for (int x = 0; x < gray.width; x++) {
+          final l = img.getLuminance(gray.getPixel(x, y)).round();
+          sumLum += l;
+          sumSq += l * l;
+          if (l > 245) sobreexpuestos++;
+
+          if (x < gray.width - 1 && y < gray.height - 1) {
+            final lr = img.getLuminance(gray.getPixel(x + 1, y)).round();
+            final ld = img.getLuminance(gray.getPixel(x, y + 1)).round();
+            edgeSum += (l - lr).abs() + (l - ld).abs();
+            pares++;
+          }
+        }
+      }
+
+      final edgeDensity = pares > 0 ? edgeSum / pares : 0;
+      final mean = sumLum / total;
+      final variance = (sumSq / total) - (mean * mean);
+      final ratioSobreexpuesto = sobreexpuestos / total;
+
+      final bool patronMoire = edgeDensity > 18;
+      final bool brilloSospechoso = ratioSobreexpuesto > 0.12 || variance < 200;
+
+      return patronMoire || brilloSospechoso;
+    } catch (_) {
+      // Si el análisis falla, no bloqueamos el flujo por esto
+      return false;
+    }
+  }
+
   Future<void> _seleccionarFechaNacimiento() async {
     final hoy = DateTime.now();
     final fecha = await showDatePicker(
       context: context,
-      initialDate: DateTime(hoy.year - 18, hoy.month, hoy.day),
+      initialDate: _fechaNacimiento ?? DateTime(hoy.year - 18, hoy.month, hoy.day),
       firstDate: DateTime(1900),
       lastDate: hoy,
       helpText: 'Fecha de nacimiento',
@@ -304,6 +439,30 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                 ),
+
+                if (_posibleFotoPantalla) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF3E0),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFFFB74D)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.warning_amber_rounded, color: Color(0xFFEF6C00)),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            "La foto parece tomada de una pantalla. Verifica los datos o vuelve a escanear con el documento físico.",
+                            style: theme.textTheme.bodySmall?.copyWith(color: const Color(0xFFEF6C00)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
 
                 const SizedBox(height: 28),
 

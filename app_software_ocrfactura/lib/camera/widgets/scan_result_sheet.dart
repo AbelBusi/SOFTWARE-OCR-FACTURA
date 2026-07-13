@@ -70,7 +70,10 @@ class ScanResultSheet extends StatelessWidget {
                             fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF263238)),
                       ),
                       const SizedBox(height: 4),
-                      Text('RUC: ${resultado.empresa.ruc}',
+                      Text(
+                          resultado.empresa.rucVisible.isEmpty
+                              ? 'Sin RUC'
+                              : 'RUC: ${resultado.empresa.rucVisible}',
                           style: const TextStyle(fontSize: 13, color: Color(0xFF78909C))),
                       Text(resultado.empresa.direccion,
                           style: const TextStyle(fontSize: 12, color: Color(0xFF78909C))),
