@@ -65,6 +65,15 @@ class _ScanOverlayPainter extends CustomPainter {
     canvas.drawRRect(rrect, Paint()..blendMode = BlendMode.clear);
     canvas.restore();
 
+    // "Manta verde": al detectar la factura bien encuadrada se tiñe el área de
+    // captura de verde translúcido como confirmación visual.
+    if (aligned) {
+      canvas.drawRRect(
+        rrect,
+        Paint()..color = _alignedColor.withValues(alpha: 0.28),
+      );
+    }
+
     // Borde tenue del recuadro.
     canvas.drawRRect(
       rrect,

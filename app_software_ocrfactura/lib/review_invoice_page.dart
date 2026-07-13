@@ -113,8 +113,10 @@ class _ReviewInvoicePageState extends State<ReviewInvoicePage> {
     });
   }
 
-  Future<void> _guardar() async {
-    if (!_formKey.currentState!.validate()) {
+  Future<void> _guardar({bool forzar = false}) async {
+    // La validación solo corre en el primer intento; el reintento tras confirmar
+    // un duplicado usa los mismos datos ya validados.
+    if (!forzar && !_formKey.currentState!.validate()) {
       _showSnackBar('Revisa los campos marcados en rojo.');
       return;
     }
@@ -150,15 +152,57 @@ class _ReviewInvoicePageState extends State<ReviewInvoicePage> {
         idUsuario: widget.idUsuario,
         imagenUrl: widget.extraido.imagenUrl,
         datos: datos,
+        forzar: forzar,
       );
 
       if (!mounted) return;
       Navigator.pop(context, guardado);
+    } on FacturaDuplicadaException catch (e) {
+      if (!mounted) return;
+      setState(() => _isSaving = false);
+      final continuar = await _confirmarDuplicado(e.mensaje);
+      if (continuar && mounted) {
+        await _guardar(forzar: true);
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() => _isSaving = false);
       _showSnackBar(e.toString().replaceFirst('Exception: ', ''));
     }
+  }
+
+  /// Diálogo que informa del duplicado y deja al usuario cancelar o continuar.
+  Future<bool> _confirmarDuplicado(String mensaje) async {
+    final continuar = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        icon: const Icon(Icons.copy_all_rounded,
+            color: Color(0xFFF9A825), size: 40),
+        title: const Text('Factura duplicada',
+            style: TextStyle(fontWeight: FontWeight.bold)),
+        content: Text(
+          '$mensaje\n\n¿Deseas registrarla de todas formas?',
+          style: const TextStyle(color: Color(0xFF37474F)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            style: TextButton.styleFrom(foregroundColor: const Color(0xFF78909C)),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1565C0),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Registrar igual'),
+          ),
+        ],
+      ),
+    );
+    return continuar ?? false;
   }
 
   void _showSnackBar(String mensaje) {

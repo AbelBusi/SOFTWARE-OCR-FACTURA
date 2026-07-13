@@ -91,8 +91,16 @@ async def guardar_factura(
         db=db,
         id_usuario=payload.id_usuario,
         datos_json=datos_json,
-        imagen_url=payload.imagen_url
+        imagen_url=payload.imagen_url,
+        forzar=payload.forzar
     )
+
+    if resultado["status"] == "duplicado":
+        # 409 Conflict: la app lo interpreta para pedir confirmación al usuario.
+        raise HTTPException(
+            status_code=409,
+            detail=resultado["message"]
+        )
 
     if resultado["status"] == "error":
         raise HTTPException(

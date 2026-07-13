@@ -32,6 +32,9 @@ class GuardarFacturaRequest(BaseModel):
 
     imagen_url: str | None = None
 
+    # Cuando es True, el usuario ya confirmó guardar pese a existir un duplicado.
+    forzar: bool = False
+
     empresa: OcrEmpresaData
 
     factura: OcrFacturaData

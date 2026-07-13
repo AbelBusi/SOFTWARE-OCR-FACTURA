@@ -4,6 +4,16 @@ import '../api_config.dart';
 import '../models/ocr_result.dart';
 import 'token_storage.dart';
 
+/// Se lanza cuando el backend detecta que la factura ya fue registrada (HTTP 409).
+/// Permite a la UI ofrecer al usuario cancelar o continuar.
+class FacturaDuplicadaException implements Exception {
+  final String mensaje;
+  FacturaDuplicadaException(this.mensaje);
+
+  @override
+  String toString() => mensaje;
+}
+
 class OcrService {
   static const String baseUrl = ApiConfig.baseUrl;
 
@@ -43,6 +53,7 @@ class OcrService {
     required int idUsuario,
     required String imagenUrl,
     required Map<String, dynamic> datos,
+    bool forzar = false,
   }) async {
     final token = await TokenStorage.getToken();
 
@@ -51,6 +62,7 @@ class OcrService {
     final body = {
       'id_usuario': idUsuario,
       'imagen_url': imagenUrl,
+      'forzar': forzar,
       'empresa': datos['empresa'],
       'factura': datos['factura'],
       'detalles': datos['detalles'],
@@ -68,6 +80,9 @@ class OcrService {
     if (response.statusCode == 200) {
       final data = jsonDecode(utf8.decode(response.bodyBytes));
       return OcrUploadResult.fromJson(data as Map<String, dynamic>);
+    } else if (response.statusCode == 409) {
+      throw FacturaDuplicadaException(
+          _mensajeError(response, 'Esta factura ya fue registrada.'));
     } else if (response.statusCode == 401) {
       throw Exception('Sesión expirada. Vuelve a iniciar sesión.');
     } else {

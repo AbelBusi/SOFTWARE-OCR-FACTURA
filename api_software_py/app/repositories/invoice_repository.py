@@ -12,6 +12,32 @@ class InvoiceRepository:
     def obtener_empresa_por_ruc(self, ruc: str):
         return self.db.query(Empresa).filter(Empresa.ruc == ruc).first()
 
+    def buscar_factura_duplicada(self, id_usuario: int, ruc: str, numero_comprobante: str, total):
+        """Busca una factura ya registrada por el mismo usuario que coincida con la
+        que se intenta guardar. Devuelve la factura existente o None.
+
+        Clave de negocio: número de comprobante + emisor (RUC). Cuando no hay RUC
+        válido, se refuerza con el total para reducir falsos positivos.
+        """
+        numero = (numero_comprobante or "").strip()
+        if not numero:
+            return None
+
+        query = (
+            self.db.query(Factura)
+            .filter(Factura.id_usuario == id_usuario)
+            .filter(Factura.numero_comprobante == numero)
+        )
+
+        ruc = (ruc or "").strip()
+        if ruc:
+            query = query.join(Empresa, Factura.id_empresa == Empresa.id_empresa)
+            query = query.filter(Empresa.ruc == ruc)
+        else:
+            query = query.filter(Factura.total == total)
+
+        return query.first()
+
     def registrar_empresa(self, datos_empresa: dict):
         empresa = Empresa(
             ruc=datos_empresa["ruc"],

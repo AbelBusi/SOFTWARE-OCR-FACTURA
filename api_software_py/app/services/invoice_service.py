@@ -92,12 +92,31 @@ class InvoiceService:
         resultado_ocr = self.ocr_service.extraer_texto(ruta_imagen)
         return self.procesar(resultado_ocr)
 
-    def guardar_datos(self, db: Session, id_usuario: int, datos_json: dict, imagen_url: str = None):
-        """Persiste los datos (ya extraídos y posiblemente corregidos por el usuario)."""
+    def guardar_datos(self, db: Session, id_usuario: int, datos_json: dict, imagen_url: str = None, forzar: bool = False):
+        """Persiste los datos (ya extraídos y posiblemente corregidos por el usuario).
+
+        Si ``forzar`` es False y se detecta una factura ya registrada, no inserta nada
+        y devuelve estado "duplicado" para que el usuario confirme o cancele.
+        """
         repo = InvoiceRepository(db)
         try:
             empresa_data = dict(datos_json["empresa"])
             ruc = (empresa_data.get("ruc") or "").strip()
+
+            # Detección de duplicados: solo se omite si el usuario ya confirmó.
+            if not forzar:
+                factura_previa = repo.buscar_factura_duplicada(
+                    id_usuario=id_usuario,
+                    ruc=ruc if re.fullmatch(r"\d{11}", ruc) else "",
+                    numero_comprobante=datos_json["factura"].get("numero_comprobante"),
+                    total=datos_json["factura"].get("total"),
+                )
+                if factura_previa:
+                    return {
+                        "status": "duplicado",
+                        "id_factura": factura_previa.id_factura,
+                        "message": "Esta factura ya fue registrada anteriormente.",
+                    }
 
             if re.fullmatch(r"\d{11}", ruc):
                 # RUC válido: se reutiliza la empresa si ya existe.
