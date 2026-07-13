@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int
 
     GROQ_API_KEY: str
+    GROQ_API_KEY_CHATBOT: str
 
     class Config:
         env_file = ".env"

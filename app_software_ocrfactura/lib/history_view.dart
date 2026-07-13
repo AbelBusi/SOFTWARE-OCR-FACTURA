@@ -225,8 +225,11 @@ class _HistoryViewState extends State<HistoryView> {
                               const BorderSide(color: Color(0xFFE0E0E0), width: 1),
                         ),
                         child: ListTile(
-                          onTap: () =>
-                              InvoiceDetailSheet.show(context, f.idFactura),
+                          onTap: () async {
+                            final cambio = await InvoiceDetailSheet.show(
+                                context, f.idFactura);
+                            if (cambio == true) _recargar();
+                          },
                           leading: CircleAvatar(
                             backgroundColor: const Color(0xFFE3F2FD),
                             child: Icon(

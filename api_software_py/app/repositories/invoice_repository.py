@@ -1,3 +1,5 @@
+import re
+import uuid
 from sqlalchemy.orm import Session
 from app.models.empresa import Empresa
 from app.models.factura import Factura
@@ -11,6 +13,30 @@ class InvoiceRepository:
 
     def obtener_empresa_por_ruc(self, ruc: str):
         return self.db.query(Empresa).filter(Empresa.ruc == ruc).first()
+
+    def resolver_empresa(self, empresa_data: dict):
+        ruc = (empresa_data.get("ruc") or "").strip()
+        if re.fullmatch(r"\d{11}", ruc):
+            empresa_data["ruc"] = ruc
+            empresa = self.obtener_empresa_por_ruc(ruc)
+            if empresa:
+                empresa.razon_social = empresa_data.get("nombre") or empresa.razon_social
+                empresa.direccion = empresa_data.get("direccion")
+                self.db.flush()
+            else:
+                empresa = self.registrar_empresa(empresa_data)
+        else:
+            empresa_data["ruc"] = f"SINRUC-{uuid.uuid4().hex[:8].upper()}"
+            empresa = self.registrar_empresa(empresa_data)
+        return empresa
+
+    def obtener_factura_activa(self, id_factura: int):
+        return (
+            self.db.query(Factura)
+            .filter(Factura.id_factura == id_factura)
+            .filter(Factura.estado == 1)
+            .first()
+        )
 
     def buscar_factura_duplicada(self, id_usuario: int, ruc: str, numero_comprobante: str, total):
         """Busca una factura ya registrada por el mismo usuario que coincida con la
@@ -26,6 +52,7 @@ class InvoiceRepository:
         query = (
             self.db.query(Factura)
             .filter(Factura.id_usuario == id_usuario)
+            .filter(Factura.estado == 1)
             .filter(Factura.numero_comprobante == numero)
         )
 
@@ -76,6 +103,31 @@ class InvoiceRepository:
             subtotal=datos_detalle.get("subtotal")
         )
         self.db.add(detalle)
+
+    def actualizar_factura(self, factura: Factura, id_empresa: int, datos_factura: dict):
+        fecha_str = datos_factura.get("fecha_emision")
+        factura.id_empresa = id_empresa
+        factura.tipo_comprobante = datos_factura.get("tipo_comprobante")
+        factura.numero_comprobante = datos_factura.get("numero_comprobante")
+        factura.fecha_emision = datetime.strptime(fecha_str, "%Y-%m-%d").date() if fecha_str else None
+        factura.subtotal = datos_factura.get("subtotal")
+        factura.igv = datos_factura.get("igv")
+        factura.total = datos_factura.get("total")
+        factura.observaciones = datos_factura.get("observaciones")
+        return factura
+
+    def reemplazar_detalles(self, id_factura: int, detalles: list):
+        self.db.query(DetalleFactura).filter(DetalleFactura.id_factura == id_factura).delete()
+        for datos_detalle in detalles:
+            self.registrar_detalle(id_factura, datos_detalle)
+
+    def eliminar_logico(self, id_factura: int):
+        factura = self.obtener_factura_activa(id_factura)
+        if not factura:
+            return False
+        factura.estado = 0
+        self.db.commit()
+        return True
 
     def commit(self):
         self.db.commit()

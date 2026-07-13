@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 
 from app.models.factura import Factura
 from app.repositories.factura_repository import FacturaRepository
+from app.repositories.invoice_repository import InvoiceRepository
 from app.schemas.factura import FacturaCreate
 
 
@@ -89,6 +90,43 @@ class FacturaService:
             db,
             id_factura
         )
+
+
+
+    def actualizar(
+        self,
+        db: Session,
+        id_factura: int,
+        datos_json: dict
+    ):
+
+        repo = InvoiceRepository(db)
+
+        factura = repo.obtener_factura_activa(id_factura)
+
+        if not factura:
+            return None
+
+        try:
+            empresa = repo.resolver_empresa(dict(datos_json["empresa"]))
+            repo.actualizar_factura(factura, empresa.id_empresa, datos_json["factura"])
+            repo.reemplazar_detalles(factura.id_factura, datos_json["detalles"])
+            repo.commit()
+            return self.repository.obtener_completa(db, id_factura)
+        except Exception:
+            repo.rollback()
+            raise
+
+
+
+    def eliminar(
+        self,
+        db: Session,
+        id_factura: int
+    ):
+
+        repo = InvoiceRepository(db)
+        return repo.eliminar_logico(id_factura)
 
 
 

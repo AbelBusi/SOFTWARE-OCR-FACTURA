@@ -1,5 +1,5 @@
 import io
-from datetime import date
+from datetime import date, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
@@ -7,6 +7,8 @@ from sqlalchemy.orm import Session
 
 
 from app.database import get_db
+
+from app.schemas.ocr import ActualizarFacturaRequest
 
 from app.services.export_service import ExportService
 
@@ -117,7 +119,7 @@ def obtener_factura_detalles(
 
 ):
 
-    factura = service.obtener_con_detalles(
+    factura = service.obtener_completa(
 
         db,
 
@@ -253,3 +255,78 @@ def exportar_factura_individual(
         media_type=export_service.media_type(formato),
         headers={"Content-Disposition": f"attachment; filename={nombre}"}
     )
+
+
+
+@router.put(
+    "/{id_factura}",
+    response_model=FacturaDetalleResponse
+)
+def actualizar_factura(
+
+    id_factura: int,
+
+    payload: ActualizarFacturaRequest,
+
+    db: Session = Depends(get_db)
+
+):
+
+    fecha = payload.factura.fecha_emision.strip() if payload.factura.fecha_emision else ""
+
+    if fecha:
+
+        try:
+            datetime.strptime(fecha, "%Y-%m-%d")
+        except ValueError:
+            raise HTTPException(
+                status_code=400,
+                detail="La fecha de emisión debe tener el formato AAAA-MM-DD."
+            )
+
+    datos_json = {
+        "empresa": payload.empresa.model_dump(),
+        "factura": payload.factura.model_dump(),
+        "detalles": [detalle.model_dump() for detalle in payload.detalles]
+    }
+
+    try:
+        factura = service.actualizar(db, id_factura, datos_json)
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"No se pudo actualizar la factura: {str(e)}"
+        )
+
+    if not factura:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Factura no encontrada"
+        )
+
+    return factura
+
+
+
+@router.delete(
+    "/{id_factura}"
+)
+def eliminar_factura(
+
+    id_factura: int,
+
+    db: Session = Depends(get_db)
+
+):
+
+    eliminado = service.eliminar(db, id_factura)
+
+    if not eliminado:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Factura no encontrada"
+        )
+
+    return {"status": "success", "id_factura": id_factura}

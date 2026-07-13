@@ -31,6 +31,7 @@ class OcrFacturaInfo {
   final double subtotal;
   final double igv;
   final double total;
+  final String observaciones;
 
   OcrFacturaInfo({
     required this.tipoComprobante,
@@ -39,6 +40,7 @@ class OcrFacturaInfo {
     required this.subtotal,
     required this.igv,
     required this.total,
+    this.observaciones = '',
   });
 
   factory OcrFacturaInfo.fromJson(Map<String, dynamic> json) {
@@ -52,6 +54,7 @@ class OcrFacturaInfo {
       subtotal: toDouble(json['subtotal']),
       igv: toDouble(json['igv']),
       total: toDouble(json['total']),
+      observaciones: (json['observaciones'] ?? '').toString(),
     );
   }
 
@@ -62,6 +65,7 @@ class OcrFacturaInfo {
         'subtotal': subtotal,
         'igv': igv,
         'total': total,
+        'observaciones': observaciones,
       };
 }
 
@@ -101,6 +105,7 @@ class OcrDetalleItem {
 class OcrUploadResult {
   final int idFactura;
   final String imagenUrl;
+  final double confianza;
   final OcrEmpresa empresa;
   final OcrFacturaInfo factura;
   final List<OcrDetalleItem> detalles;
@@ -108,6 +113,7 @@ class OcrUploadResult {
   OcrUploadResult({
     required this.idFactura,
     required this.imagenUrl,
+    required this.confianza,
     required this.empresa,
     required this.factura,
     required this.detalles,
@@ -117,9 +123,13 @@ class OcrUploadResult {
     final data = Map<String, dynamic>.from(json['data'] ?? {});
     final rawDetalles = data['detalles'];
 
+    double toDouble(dynamic v) =>
+        v is num ? v.toDouble() : double.tryParse(v?.toString() ?? '0') ?? 0.0;
+
     return OcrUploadResult(
       idFactura: json['id_factura'] ?? 0,
       imagenUrl: (json['imagen_url'] ?? '').toString(),
+      confianza: toDouble(json['confianza']),
       empresa: OcrEmpresa.fromJson(Map<String, dynamic>.from(data['empresa'] ?? {})),
       factura: OcrFacturaInfo.fromJson(Map<String, dynamic>.from(data['factura'] ?? {})),
       detalles: (rawDetalles is List)

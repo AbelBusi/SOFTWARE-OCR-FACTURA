@@ -35,6 +35,9 @@ class FacturaRepository:
             .filter(
                 Factura.id_factura == id_factura
             )
+            .filter(
+                Factura.estado == 1
+            )
             .first()
         )
 
@@ -53,6 +56,9 @@ class FacturaRepository:
             )
             .filter(
                 Factura.id_factura == id_factura
+            )
+            .filter(
+                Factura.estado == 1
             )
             .first()
         )
@@ -73,6 +79,9 @@ class FacturaRepository:
             )
             .filter(
                 Factura.id_factura == id_factura
+            )
+            .filter(
+                Factura.estado == 1
             )
             .first()
         )
@@ -99,6 +108,7 @@ class FacturaRepository:
             db.query(Factura)
             .outerjoin(Empresa, Factura.id_empresa == Empresa.id_empresa)
             .filter(Factura.id_usuario == id_usuario)
+            .filter(Factura.estado == 1)
         )
 
         if q:

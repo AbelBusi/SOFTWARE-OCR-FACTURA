@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'models/factura_detalle.dart';
+import 'models/ocr_result.dart';
 import 'services/factura_service.dart';
 import 'export_helper.dart';
+import 'review_invoice_page.dart';
 
 class InvoiceDetailSheet {
   InvoiceDetailSheet._();
 
-  static void show(BuildContext context, int idFactura) {
-    showModalBottomSheet(
+  /// Devuelve true si la factura fue editada o eliminada (para refrescar la lista).
+  static Future<bool?> show(BuildContext context, int idFactura) {
+    return showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.white,
@@ -217,7 +220,41 @@ class _InvoiceDetailContentState extends State<_InvoiceDetailContent> {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _editar(f),
+                      icon: const Icon(Icons.edit_outlined, size: 18),
+                      label: const Text('EDITAR'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF1565C0),
+                        side: const BorderSide(color: Color(0xFF1565C0)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _eliminar(f),
+                      icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                      label: const Text('ELIMINAR'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFFC62828),
+                        side: const BorderSide(color: Color(0xFFC62828)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
@@ -232,8 +269,8 @@ class _InvoiceDetailContentState extends State<_InvoiceDetailContent> {
                       icon: const Icon(Icons.file_download_outlined, size: 18),
                       label: const Text('EXPORTAR'),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF1565C0),
-                        side: const BorderSide(color: Color(0xFF1565C0)),
+                        foregroundColor: const Color(0xFF546E7A),
+                        side: const BorderSide(color: Color(0xFFB0BEC5)),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8)),
@@ -260,6 +297,101 @@ class _InvoiceDetailContentState extends State<_InvoiceDetailContent> {
         },
       ),
     );
+  }
+
+  Future<void> _editar(FacturaDetalle f) async {
+    final extraido = OcrUploadResult(
+      idFactura: f.idFactura,
+      imagenUrl: '',
+      confianza: 0,
+      empresa: OcrEmpresa(
+        ruc: f.empresaRuc.startsWith('SINRUC-') ? '' : f.empresaRuc,
+        nombre: f.empresaNombre,
+        direccion: f.empresaDireccion,
+      ),
+      factura: OcrFacturaInfo(
+        tipoComprobante: f.tipoComprobante,
+        numeroComprobante: f.numeroComprobante,
+        fechaEmision: f.fechaEmision,
+        subtotal: f.subtotal,
+        igv: f.igv,
+        total: f.total,
+        observaciones: f.observaciones,
+      ),
+      detalles: f.detalles
+          .map((d) => OcrDetalleItem(
+                descripcion: d.descripcion,
+                cantidad: d.cantidad,
+                precioUnitario: d.precioUnitario,
+                subtotal: d.subtotal,
+              ))
+          .toList(),
+    );
+
+    final actualizado = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ReviewInvoicePage(
+          extraido: extraido,
+          idFactura: f.idFactura,
+        ),
+      ),
+    );
+
+    if (actualizado == true && mounted) {
+      Navigator.pop(context, true);
+    }
+  }
+
+  Future<void> _eliminar(FacturaDetalle f) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        icon: const Icon(Icons.delete_outline_rounded,
+            color: Color(0xFFC62828), size: 40),
+        title: const Text('Eliminar factura',
+            style: TextStyle(fontWeight: FontWeight.bold)),
+        content: const Text(
+          '¿Deseas eliminar esta factura? Dejará de mostrarse en tus consultas.',
+          style: TextStyle(color: Color(0xFF37474F)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            style: TextButton.styleFrom(foregroundColor: const Color(0xFF78909C)),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFC62828),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar != true) return;
+
+    try {
+      await FacturaService.eliminarFactura(f.idFactura);
+      if (!mounted) return;
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceFirst('Exception: ', ''),
+              style: const TextStyle(color: Colors.white)),
+          backgroundColor: const Color(0xFF263238),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    }
   }
 
   Widget _buildTotalRow(String label, double amount) {

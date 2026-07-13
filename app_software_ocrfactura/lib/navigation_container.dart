@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'dashboard_view.dart';
 import 'history_view.dart';
 import 'profile_view.dart';
+import 'chat_page.dart';
 
 class MainNavigationContainer extends StatefulWidget {
   const MainNavigationContainer({super.key});
@@ -98,9 +99,18 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
         _salirDeLaApp();
       },
       child: Scaffold(
-        body: IndexedStack(
-          index: _currentIndex,
-          children: _views,
+        body: Stack(
+          children: [
+            IndexedStack(
+              index: _currentIndex,
+              children: _views,
+            ),
+            Positioned(
+              right: 16,
+              bottom: 16,
+              child: _buildChatBubble(),
+            ),
+          ],
         ),
         bottomNavigationBar: Container(
           decoration: const BoxDecoration(
@@ -122,6 +132,25 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChatBubble() {
+    return Material(
+      color: _azul,
+      shape: const CircleBorder(),
+      elevation: 6,
+      shadowColor: Colors.black45,
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const ChatPage()),
+        ),
+        child: const Padding(
+          padding: EdgeInsets.all(14),
+          child: Icon(Icons.support_agent_rounded, color: Colors.white, size: 28),
         ),
       ),
     );

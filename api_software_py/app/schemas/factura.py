@@ -3,6 +3,7 @@ from datetime import date
 from pydantic import BaseModel
 
 from app.schemas.detalle_factura import DetalleFacturaResponse
+from app.schemas.empresa import EmpresaResponse
 
 
 class FacturaCreate(BaseModel):
@@ -68,6 +69,10 @@ class FacturaDetalleResponse(BaseModel):
     igv: float
 
     total: float
+
+    observaciones: str | None = None
+
+    empresa: EmpresaResponse | None = None
 
     detalles: list[DetalleFacturaResponse]
 

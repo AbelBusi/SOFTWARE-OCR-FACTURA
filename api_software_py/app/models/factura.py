@@ -75,8 +75,9 @@ class Factura(Base):
 
 
     estado = Column(
-        String(20),
-        server_default="REGISTRADA"
+        Integer,
+        nullable=False,
+        server_default="1"
     )
 
 

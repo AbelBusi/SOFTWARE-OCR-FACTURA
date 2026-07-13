@@ -67,6 +67,61 @@ class FacturaService {
     }
   }
 
+  static Future<void> actualizarFactura({
+    required int idFactura,
+    required Map<String, dynamic> datos,
+  }) async {
+    final token = await TokenStorage.getToken();
+
+    final response = await http.put(
+      Uri.parse('$baseUrl/factura/$idFactura'),
+      headers: {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'empresa': datos['empresa'],
+        'factura': datos['factura'],
+        'detalles': datos['detalles'],
+      }),
+    );
+
+    if (response.statusCode == 200) return;
+
+    if (response.statusCode == 401) {
+      throw Exception('Sesión expirada. Vuelve a iniciar sesión.');
+    }
+
+    String mensaje = 'Error al actualizar la factura (${response.statusCode})';
+    try {
+      final body = jsonDecode(utf8.decode(response.bodyBytes));
+      if (body is Map && body['detail'] != null) {
+        mensaje = body['detail'].toString();
+      }
+    } catch (_) {}
+    throw Exception(mensaje);
+  }
+
+  static Future<void> eliminarFactura(int idFactura) async {
+    final token = await TokenStorage.getToken();
+
+    final response = await http.delete(
+      Uri.parse('$baseUrl/factura/$idFactura'),
+      headers: {
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) return;
+
+    if (response.statusCode == 401) {
+      throw Exception('Sesión expirada. Vuelve a iniciar sesión.');
+    } else if (response.statusCode == 404) {
+      throw Exception('La factura no existe o ya fue eliminada.');
+    }
+    throw Exception('Error al eliminar la factura (${response.statusCode})');
+  }
+
   static Future<ExportResult> exportarFacturas({
     required int idUsuario,
     required String formato,

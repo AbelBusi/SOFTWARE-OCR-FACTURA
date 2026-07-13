@@ -55,6 +55,7 @@ class _CameraPageState extends State<CameraPage> {
           builder: (_) => ReviewInvoicePage(
             extraido: extraido,
             idUsuario: idUsuario,
+            confianza: extraido.confianza,
           ),
         ),
       );

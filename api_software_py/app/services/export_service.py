@@ -112,7 +112,7 @@ class ExportService:
         return factura.fecha_emision.strftime("%Y-%m-%d") if factura.fecha_emision else "-"
 
     def _estado(self, factura):
-        return getattr(factura, "estado", None) or "REGISTRADA"
+        return "Activo" if getattr(factura, "estado", 1) == 1 else "Eliminado"
 
     def _observaciones(self, factura):
         return getattr(factura, "observaciones", None)

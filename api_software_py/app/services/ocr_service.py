@@ -24,3 +24,9 @@ class OCRService:
             })
 
         return textos
+
+    def confianza_promedio(self, resultado_ocr):
+        if not resultado_ocr:
+            return 0.0
+        total = sum(item["confianza"] for item in resultado_ocr)
+        return round(total / len(resultado_ocr), 4)

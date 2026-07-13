@@ -37,6 +37,10 @@ class FacturaDetalle {
   final double subtotal;
   final double igv;
   final double total;
+  final String observaciones;
+  final String empresaRuc;
+  final String empresaNombre;
+  final String empresaDireccion;
   final List<DetalleItem> detalles;
 
   FacturaDetalle({
@@ -49,6 +53,10 @@ class FacturaDetalle {
     required this.subtotal,
     required this.igv,
     required this.total,
+    required this.observaciones,
+    required this.empresaRuc,
+    required this.empresaNombre,
+    required this.empresaDireccion,
     required this.detalles,
   });
 
@@ -64,6 +72,10 @@ class FacturaDetalle {
         .toList()
         : [];
 
+    final empresa = json['empresa'] is Map
+        ? Map<String, dynamic>.from(json['empresa'])
+        : <String, dynamic>{};
+
     return FacturaDetalle(
       idFactura: json['id_factura'] ?? 0,
       idUsuario: json['id_usuario'] ?? 0,
@@ -74,6 +86,10 @@ class FacturaDetalle {
       subtotal: toDouble(json['subtotal']),
       igv: toDouble(json['igv']),
       total: toDouble(json['total']),
+      observaciones: (json['observaciones'] ?? '').toString(),
+      empresaRuc: (empresa['ruc'] ?? '').toString(),
+      empresaNombre: (empresa['razon_social'] ?? '').toString(),
+      empresaDireccion: (empresa['direccion'] ?? '').toString(),
       detalles: items,
     );
   }

@@ -8,6 +8,7 @@ from app.routers.empresa import router as empresa_router
 from app.routers.factura import router as factura_router
 from app.routers.detalle_factura import router as detalle_router
 from app.routers.ocr import router as ocr_router
+from app.routers.chat import router as chat_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -21,6 +22,7 @@ app.include_router(empresa_router)
 app.include_router(factura_router)
 app.include_router(detalle_router)
 app.include_router(ocr_router)
+app.include_router(chat_router)
 
 @app.get("/")
 def inicio():

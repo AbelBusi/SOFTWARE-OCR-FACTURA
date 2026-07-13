@@ -48,7 +48,7 @@ async def subir_imagen(
         )
 
     service = InvoiceService()
-    datos_json = service.procesar_imagen(ruta)
+    datos_json, confianza = service.procesar_imagen(ruta)
 
     if "error" in datos_json:
         raise HTTPException(
@@ -59,6 +59,7 @@ async def subir_imagen(
     return {
         "status": "success",
         "imagen_url": ruta,
+        "confianza": confianza,
         "data": datos_json
     }
 

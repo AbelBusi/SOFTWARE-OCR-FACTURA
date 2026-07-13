@@ -88,9 +88,11 @@ class InvoiceService:
             return {"error": str(e)}
 
     def procesar_imagen(self, ruta_imagen: str):
-        """Ejecuta OCR + estructuración con IA y devuelve los datos SIN persistir."""
+        """Ejecuta OCR + estructuración con IA. Devuelve (datos, confianza) SIN persistir."""
         resultado_ocr = self.ocr_service.extraer_texto(ruta_imagen)
-        return self.procesar(resultado_ocr)
+        datos = self.procesar(resultado_ocr)
+        confianza = self.ocr_service.confianza_promedio(resultado_ocr)
+        return datos, confianza
 
     def guardar_datos(self, db: Session, id_usuario: int, datos_json: dict, imagen_url: str = None, forzar: bool = False):
         """Persiste los datos (ya extraídos y posiblemente corregidos por el usuario).
@@ -118,18 +120,7 @@ class InvoiceService:
                         "message": "Esta factura ya fue registrada anteriormente.",
                     }
 
-            if re.fullmatch(r"\d{11}", ruc):
-                # RUC válido: se reutiliza la empresa si ya existe.
-                empresa_data["ruc"] = ruc
-                empresa = repo.obtener_empresa_por_ruc(ruc)
-                if not empresa:
-                    empresa = repo.registrar_empresa(empresa_data)
-            else:
-                # Sin RUC (o no extraíble): se asigna un identificador interno único
-                # para que cada factura sin RUC tenga su propia empresa y no colisione
-                # con otras. No representa un RUC real y no se expone al usuario.
-                empresa_data["ruc"] = f"SINRUC-{uuid.uuid4().hex[:8].upper()}"
-                empresa = repo.registrar_empresa(empresa_data)
+            empresa = repo.resolver_empresa(empresa_data)
 
             factura = repo.registrar_factura(
                 id_usuario=id_usuario,
@@ -149,7 +140,7 @@ class InvoiceService:
             return {"status": "error", "message": f"Error en persistencia: {str(e)}"}
 
     def procesar_y_guardar(self, db: Session, ruta_imagen: str, id_usuario: int, imagen_url: str = None):
-        datos_json = self.procesar_imagen(ruta_imagen)
+        datos_json, _ = self.procesar_imagen(ruta_imagen)
 
         if "error" in datos_json:
             return {"status": "error", "message": datos_json["error"]}

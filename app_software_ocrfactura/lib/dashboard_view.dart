@@ -7,7 +7,6 @@ import 'dashboard/widgets/stats_row.dart';
 import 'dashboard/widgets/weekly_chart_card.dart';
 import 'dashboard/widgets/alerts_card.dart';
 import 'dashboard/widgets/recent_invoices_card.dart';
-import 'dashboard/widgets/assistant_chat_card.dart';
 import 'history_view.dart';
 
 class DashboardView extends StatefulWidget {
@@ -139,8 +138,6 @@ class _DashboardViewState extends State<DashboardView> {
                     );
                   },
                 ),
-                const SizedBox(height: 20),
-                AssistantChatCard(facturas: facturas),
                 const SizedBox(height: 20),
               ],
             );

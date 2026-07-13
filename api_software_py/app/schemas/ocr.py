@@ -16,6 +16,7 @@ class OcrFacturaData(BaseModel):
     subtotal: float = 0.0
     igv: float = 0.0
     total: float = 0.0
+    observaciones: str = ""
 
 
 class OcrDetalleData(BaseModel):
@@ -34,6 +35,15 @@ class GuardarFacturaRequest(BaseModel):
 
     # Cuando es True, el usuario ya confirmó guardar pese a existir un duplicado.
     forzar: bool = False
+
+    empresa: OcrEmpresaData
+
+    factura: OcrFacturaData
+
+    detalles: list[OcrDetalleData] = Field(default_factory=list)
+
+
+class ActualizarFacturaRequest(BaseModel):
 
     empresa: OcrEmpresaData
 

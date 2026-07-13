@@ -2,18 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'models/ocr_result.dart';
 import 'services/ocr_service.dart';
+import 'services/factura_service.dart';
 
-/// Pantalla donde el usuario revisa y corrige los datos extraídos por el OCR
-/// antes de guardarlos definitivamente.
+/// Pantalla donde el usuario revisa y corrige los datos de una factura, ya sea
+/// tras el OCR (creación) o al editar una factura existente.
 class ReviewInvoicePage extends StatefulWidget {
   final OcrUploadResult extraido;
-  final int idUsuario;
+  final int? idUsuario;
+  final int? idFactura;
+  final double? confianza;
 
   const ReviewInvoicePage({
     super.key,
     required this.extraido,
-    required this.idUsuario,
+    this.idUsuario,
+    this.idFactura,
+    this.confianza,
   });
+
+  bool get esEdicion => idFactura != null;
 
   @override
   State<ReviewInvoicePage> createState() => _ReviewInvoicePageState();
@@ -34,6 +41,7 @@ class _ReviewInvoicePageState extends State<ReviewInvoicePage> {
   late final TextEditingController _subtotalCtrl;
   late final TextEditingController _igvCtrl;
   late final TextEditingController _totalCtrl;
+  late final TextEditingController _obsCtrl;
 
   // Detalles
   final List<_DetalleControllers> _detalles = [];
@@ -56,6 +64,7 @@ class _ReviewInvoicePageState extends State<ReviewInvoicePage> {
     _subtotalCtrl = TextEditingController(text: _numStr(f.subtotal));
     _igvCtrl = TextEditingController(text: _numStr(f.igv));
     _totalCtrl = TextEditingController(text: _numStr(f.total));
+    _obsCtrl = TextEditingController(text: f.observaciones);
 
     for (final d in widget.extraido.detalles) {
       _detalles.add(_DetalleControllers.fromItem(d, _numStr));
@@ -73,6 +82,7 @@ class _ReviewInvoicePageState extends State<ReviewInvoicePage> {
     _subtotalCtrl.dispose();
     _igvCtrl.dispose();
     _totalCtrl.dispose();
+    _obsCtrl.dispose();
     for (final d in _detalles) {
       d.dispose();
     }
@@ -136,6 +146,7 @@ class _ReviewInvoicePageState extends State<ReviewInvoicePage> {
         'subtotal': _toDouble(_subtotalCtrl.text),
         'igv': _toDouble(_igvCtrl.text),
         'total': _toDouble(_totalCtrl.text),
+        'observaciones': _obsCtrl.text.trim(),
       },
       'detalles': _detalles
           .map((d) => {
@@ -147,9 +158,14 @@ class _ReviewInvoicePageState extends State<ReviewInvoicePage> {
           .toList(),
     };
 
+    if (widget.esEdicion) {
+      await _actualizar(datos);
+      return;
+    }
+
     try {
       final guardado = await OcrService.guardarFactura(
-        idUsuario: widget.idUsuario,
+        idUsuario: widget.idUsuario!,
         imagenUrl: widget.extraido.imagenUrl,
         datos: datos,
         forzar: forzar,
@@ -164,6 +180,22 @@ class _ReviewInvoicePageState extends State<ReviewInvoicePage> {
       if (continuar && mounted) {
         await _guardar(forzar: true);
       }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isSaving = false);
+      _showSnackBar(e.toString().replaceFirst('Exception: ', ''));
+    }
+  }
+
+  Future<void> _actualizar(Map<String, dynamic> datos) async {
+    try {
+      await FacturaService.actualizarFactura(
+        idFactura: widget.idFactura!,
+        datos: datos,
+      );
+
+      if (!mounted) return;
+      Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
       setState(() => _isSaving = false);
@@ -221,8 +253,8 @@ class _ReviewInvoicePageState extends State<ReviewInvoicePage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F9FC),
       appBar: AppBar(
-        title: const Text('Revisar Factura',
-            style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(widget.esEdicion ? 'Editar Factura' : 'Revisar Factura',
+            style: const TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         backgroundColor: const Color(0xFF1565C0),
         foregroundColor: Colors.white,
@@ -234,6 +266,10 @@ class _ReviewInvoicePageState extends State<ReviewInvoicePage> {
           child: ListView(
             padding: const EdgeInsets.all(20),
             children: [
+              if (widget.confianza != null) ...[
+                _confianzaBanner(widget.confianza!),
+                const SizedBox(height: 16),
+              ],
               _infoBanner(),
               const SizedBox(height: 16),
               _seccion('Empresa', Icons.storefront_rounded, [
@@ -253,6 +289,7 @@ class _ReviewInvoicePageState extends State<ReviewInvoicePage> {
                     numerico: true, validator: _validarNumero),
                 _campo(_totalCtrl, 'Total',
                     numerico: true, validator: _validarNumero),
+                _campo(_obsCtrl, 'Observaciones'),
               ]),
               const SizedBox(height: 16),
               _seccionDetalles(),
@@ -268,7 +305,11 @@ class _ReviewInvoicePageState extends State<ReviewInvoicePage> {
                       )
                     : const Icon(Icons.check_rounded),
                 label: Text(
-                  _isSaving ? 'GUARDANDO...' : 'CONFIRMAR Y GUARDAR',
+                  _isSaving
+                      ? 'GUARDANDO...'
+                      : (widget.esEdicion
+                          ? 'GUARDAR CAMBIOS'
+                          : 'CONFIRMAR Y GUARDAR'),
                   style: const TextStyle(
                       fontWeight: FontWeight.bold, letterSpacing: 0.5),
                 ),
@@ -284,6 +325,63 @@ class _ReviewInvoicePageState extends State<ReviewInvoicePage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _confianzaBanner(double confianza) {
+    final porcentaje = (confianza * 100).clamp(0, 100);
+
+    late final Color fondo;
+    late final Color acento;
+    late final IconData icono;
+    late final String titulo;
+
+    if (porcentaje >= 90) {
+      fondo = const Color(0xFFE8F5E9);
+      acento = const Color(0xFF2E7D32);
+      icono = Icons.verified_rounded;
+      titulo = 'Lectura confiable';
+    } else if (porcentaje >= 50) {
+      fondo = const Color(0xFFFFF8E1);
+      acento = const Color(0xFFF9A825);
+      icono = Icons.warning_amber_rounded;
+      titulo = 'Revisa con atención';
+    } else {
+      fondo = const Color(0xFFFFEBEE);
+      acento = const Color(0xFFC62828);
+      icono = Icons.error_outline_rounded;
+      titulo = 'Baja precisión de lectura';
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: fondo,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: acento.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        children: [
+          Icon(icono, color: acento, size: 24),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(titulo,
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: acento)),
+                Text(
+                  'Confianza de lectura: ${porcentaje.toStringAsFixed(0)}%',
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF37474F)),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
