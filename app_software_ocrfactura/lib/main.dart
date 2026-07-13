@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'login_page.dart';
 import 'camera_page.dart';
 import 'navigation_container.dart';
 import 'register_page.dart';
 import 'splash_screen.dart';
+import 'l10n/app_localizations.dart';
+import 'l10n/locale_controller.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await cargarIdioma();
   runApp(const MyApp());
 }
 
@@ -15,10 +19,21 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Gestor de Facturas',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
+    return ValueListenableBuilder<Locale>(
+      valueListenable: localeController,
+      builder: (context, locale, _) {
+        return MaterialApp(
+          title: 'Gestor de Facturas',
+          debugShowCheckedModeBanner: false,
+          locale: locale,
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF1565C0),
@@ -85,13 +100,15 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const SplashScreen(),
-        '/login': (context) => const LoginPage(),
-        '/register': (context) => const RegisterPage(),
-        '/dashboard': (context) => const MainNavigationContainer(),
-        '/camera': (context) => const CameraPage(),
+          initialRoute: '/',
+          routes: {
+            '/': (context) => const SplashScreen(),
+            '/login': (context) => const LoginPage(),
+            '/register': (context) => const RegisterPage(),
+            '/dashboard': (context) => const MainNavigationContainer(),
+            '/camera': (context) => const CameraPage(),
+          },
+        );
       },
     );
   }

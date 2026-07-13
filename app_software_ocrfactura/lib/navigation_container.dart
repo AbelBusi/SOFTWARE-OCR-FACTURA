@@ -4,6 +4,7 @@ import 'dashboard_view.dart';
 import 'history_view.dart';
 import 'profile_view.dart';
 import 'chat_page.dart';
+import 'l10n/app_localizations.dart';
 
 class MainNavigationContainer extends StatefulWidget {
   const MainNavigationContainer({super.key});
@@ -51,7 +52,7 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
             style: TextButton.styleFrom(foregroundColor: _gris),
-            child: const Text('Cancelar', style: TextStyle(fontWeight: FontWeight.w600)),
+            child: Text(context.tr('cancel'), style: const TextStyle(fontWeight: FontWeight.w600)),
           ),
           OutlinedButton(
             onPressed: () => Navigator.of(context).pop(true),
@@ -70,9 +71,9 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
 
   Future<void> _cerrarSesion() async {
     final confirmar = await _mostrarDialogoConfirmacion(
-      titulo: '¿Cerrar sesión?',
-      mensaje: 'Volverás a la pantalla de inicio de sesión y deberás ingresar tus credenciales nuevamente.',
-      textoConfirmar: 'Cerrar sesión',
+      titulo: context.tr('logout_title'),
+      mensaje: context.tr('logout_msg'),
+      textoConfirmar: context.tr('logout_confirm'),
     );
     if (confirmar && mounted) {
       Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
@@ -81,9 +82,9 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
 
   Future<void> _salirDeLaApp() async {
     final confirmar = await _mostrarDialogoConfirmacion(
-      titulo: '¿Salir de la aplicación?',
-      mensaje: 'Se cerrará la aplicación. Tu sesión seguirá activa la próxima vez que ingreses.',
-      textoConfirmar: 'Salir',
+      titulo: context.tr('exit_title'),
+      mensaje: context.tr('exit_msg'),
+      textoConfirmar: context.tr('exit_confirm'),
     );
     if (confirmar) {
       SystemNavigator.pop();
@@ -123,10 +124,10 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
               height: 62,
               child: Row(
                 children: [
-                  _buildNavItem(icon: Icons.analytics_rounded, label: 'Panel', index: 0),
-                  _buildNavItem(icon: Icons.history_toggle_off_rounded, label: 'Historial', index: 1),
+                  _buildNavItem(icon: Icons.analytics_rounded, label: context.tr('nav_panel'), index: 0),
+                  _buildNavItem(icon: Icons.history_toggle_off_rounded, label: context.tr('nav_history'), index: 1),
                   _buildScanItem(),
-                  _buildNavItem(icon: Icons.person_outline_rounded, label: 'Perfil', index: 2),
+                  _buildNavItem(icon: Icons.person_outline_rounded, label: context.tr('nav_profile'), index: 2),
                   _buildLogoutItem(),
                 ],
               ),
@@ -204,9 +205,9 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
               child: const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 20),
             ),
             const SizedBox(height: 3),
-            const Text(
-              'Escanear',
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: _texto),
+            Text(
+              context.tr('nav_scan'),
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: _texto),
             ),
           ],
         ),
@@ -220,12 +221,12 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
         onTap: _cerrarSesion,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Icon(Icons.logout_rounded, color: _gris, size: 22),
-            SizedBox(height: 2),
+          children: [
+            const Icon(Icons.logout_rounded, color: _gris, size: 22),
+            const SizedBox(height: 2),
             Text(
-              'Salir',
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: _gris),
+              context.tr('nav_exit'),
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: _gris),
             ),
           ],
         ),

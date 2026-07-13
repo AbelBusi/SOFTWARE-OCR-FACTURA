@@ -11,6 +11,7 @@ import 'dashboard/widgets/quick_actions_row.dart';
 import 'dashboard/widgets/type_distribution_card.dart';
 import 'history_view.dart';
 import 'chat_page.dart';
+import 'l10n/app_localizations.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
@@ -89,9 +90,9 @@ class _DashboardViewState extends State<DashboardView> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F9FC),
       appBar: AppBar(
-        title: const Text(
-          'MÓDULO ANALÍTICO',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, letterSpacing: 1.2),
+        title: Text(
+          context.tr('dashboard_title'),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, letterSpacing: 1.2),
         ),
         backgroundColor: const Color(0xFF1565C0),
         foregroundColor: Colors.white,
@@ -163,9 +164,9 @@ class _DashboardViewState extends State<DashboardView> {
                   montosPorDia: _montoPorDia(facturas),
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  'Alertas y Validaciones',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF263238)),
+                Text(
+                  context.tr('alerts_title'),
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF263238)),
                 ),
                 const SizedBox(height: 12),
                 AlertsCard(alertas: _alertasDeValidacion(facturas)),

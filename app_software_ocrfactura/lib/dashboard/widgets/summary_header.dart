@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 
 class SummaryHeader extends StatelessWidget {
   final double total;
@@ -30,9 +31,9 @@ class SummaryHeader extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'TOTAL PROCESADO',
-                      style: TextStyle(
+                    Text(
+                      context.tr('total_processed'),
+                      style: const TextStyle(
                         color: Color(0xFFE3F2FD),
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -76,7 +77,7 @@ class SummaryHeader extends StatelessWidget {
                 Expanded(
                   child: _MiniDato(
                     icono: Icons.receipt_long_rounded,
-                    label: 'Comprobantes',
+                    label: context.tr('vouchers'),
                     valor: '$cantidad',
                   ),
                 ),
@@ -88,7 +89,7 @@ class SummaryHeader extends StatelessWidget {
                 Expanded(
                   child: _MiniDato(
                     icono: Icons.calculate_outlined,
-                    label: 'Ticket promedio',
+                    label: context.tr('avg_ticket'),
                     valor: 'S/ ${promedio.toStringAsFixed(2)}',
                   ),
                 ),

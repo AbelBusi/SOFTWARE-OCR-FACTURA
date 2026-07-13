@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'models/chat_message.dart';
 import 'services/chat_service.dart';
+import 'l10n/app_localizations.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -12,24 +13,28 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final List<ChatMessage> _mensajes = [
-    ChatMessage(
-      texto:
-          'Hola, soy tu asistente. Puedo ayudarte con tus facturas, empresas, RUC, totales, productos, fechas y estadísticas. ¿Qué necesitas saber?',
-      esUsuario: false,
-    ),
-  ];
+  final List<ChatMessage> _mensajes = [];
 
   bool _cargando = false;
+  bool _saludoAgregado = false;
 
   static const _azul = Color(0xFF1565C0);
 
   static const _sugerencias = [
-    '¿Cuánto he gastado en total?',
-    '¿Cuántas facturas tengo?',
-    '¿Cuál es mi última factura?',
-    '¿En qué empresa gasté más?',
+    'suggestion_total',
+    'suggestion_count',
+    'suggestion_last',
+    'suggestion_top',
   ];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_saludoAgregado) {
+      _saludoAgregado = true;
+      _mensajes.add(ChatMessage(texto: context.tr('chat_greeting'), esUsuario: false));
+    }
+  }
 
   @override
   void dispose() {
@@ -101,25 +106,25 @@ class _ChatPageState extends State<ChatPage> {
         elevation: 0,
         titleSpacing: 0,
         title: Row(
-          children: const [
-            CircleAvatar(
+          children: [
+            const CircleAvatar(
               radius: 18,
               backgroundColor: Colors.white,
               child: Icon(Icons.support_agent_rounded, color: _azul, size: 22),
             ),
-            SizedBox(width: 12),
+            const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Asistente',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(context.tr('assistant'),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 Row(
                   children: [
-                    CircleAvatar(radius: 3.5, backgroundColor: Color(0xFF69F0AE)),
-                    SizedBox(width: 6),
-                    Text('En línea',
-                        style: TextStyle(
+                    const CircleAvatar(radius: 3.5, backgroundColor: Color(0xFF69F0AE)),
+                    const SizedBox(width: 6),
+                    Text(context.tr('online'),
+                        style: const TextStyle(
                             fontSize: 11.5, color: Color(0xFFE3F2FD))),
                   ],
                 ),
@@ -158,14 +163,15 @@ class _ChatPageState extends State<ChatPage> {
       child: Wrap(
         spacing: 8,
         runSpacing: 8,
-        children: _sugerencias.map((s) {
+        children: _sugerencias.map((key) {
+          final texto = context.tr(key);
           return ActionChip(
-            label: Text(s, style: const TextStyle(fontSize: 12, color: _azul)),
+            label: Text(texto, style: const TextStyle(fontSize: 12, color: _azul)),
             backgroundColor: Colors.white,
             side: const BorderSide(color: Color(0xFFBBDEFB)),
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20)),
-            onPressed: () => _enviarTexto(s),
+            onPressed: () => _enviarTexto(texto),
           );
         }).toList(),
       ),
@@ -269,7 +275,7 @@ class _ChatPageState extends State<ChatPage> {
               maxLines: 4,
               style: const TextStyle(fontSize: 14),
               decoration: InputDecoration(
-                hintText: 'Escribe tu pregunta...',
+                hintText: context.tr('chat_hint'),
                 hintStyle:
                     const TextStyle(fontSize: 13, color: Color(0xFF9E9E9E)),
                 isDense: true,

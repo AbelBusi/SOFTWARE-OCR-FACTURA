@@ -5,6 +5,7 @@ import 'services/factura_service.dart';
 import 'services/token_storage.dart';
 import 'invoice_detail_sheet.dart';
 import 'export_helper.dart';
+import 'l10n/app_localizations.dart';
 
 class HistoryView extends StatefulWidget {
   const HistoryView({super.key});
@@ -137,15 +138,15 @@ class _HistoryViewState extends State<HistoryView> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F9FC),
       appBar: AppBar(
-        title: const Text('Historial de Comprobantes',
-            style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(context.tr('history_title'),
+            style: const TextStyle(fontWeight: FontWeight.bold)),
         automaticallyImplyLeading: false,
         backgroundColor: const Color(0xFF1565C0),
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
           IconButton(
-            tooltip: 'Exportar',
+            tooltip: context.tr('export'),
             icon: const Icon(Icons.file_download_outlined),
             onPressed: _abrirExportacion,
           ),
@@ -194,8 +195,8 @@ class _HistoryViewState extends State<HistoryView> {
                         Center(
                           child: Text(
                             _hayFiltros
-                                ? 'No se encontraron comprobantes con esos filtros'
-                                : 'Aún no tienes comprobantes registrados',
+                                ? context.tr('no_filter_results')
+                                : context.tr('no_invoices'),
                             textAlign: TextAlign.center,
                             style: const TextStyle(color: Color(0xFF78909C)),
                           ),
@@ -273,7 +274,7 @@ class _HistoryViewState extends State<HistoryView> {
 
   Widget _buildFiltros() {
     final fechaLabel =
-        _fecha != null ? _fmtFecha(_fecha!) : 'Fecha';
+        _fecha != null ? _fmtFecha(_fecha!) : context.tr('date');
 
     return Container(
       color: Colors.white,
@@ -286,7 +287,7 @@ class _HistoryViewState extends State<HistoryView> {
             textInputAction: TextInputAction.search,
             style: const TextStyle(fontSize: 14, color: Color(0xFF263238)),
             decoration: InputDecoration(
-              hintText: 'Buscar por proveedor, RUC o N° comprobante',
+              hintText: context.tr('search_hint'),
               hintStyle:
                   const TextStyle(color: Color(0xFF9E9E9E), fontSize: 13),
               prefixIcon:
@@ -346,7 +347,7 @@ class _HistoryViewState extends State<HistoryView> {
                 TextButton.icon(
                   onPressed: _limpiarFiltros,
                   icon: const Icon(Icons.filter_alt_off_rounded, size: 18),
-                  label: const Text('Limpiar'),
+                  label: Text(context.tr('clear')),
                   style: TextButton.styleFrom(
                       foregroundColor: const Color(0xFFE53935)),
                 ),

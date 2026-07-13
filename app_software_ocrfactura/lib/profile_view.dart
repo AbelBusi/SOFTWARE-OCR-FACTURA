@@ -4,6 +4,8 @@ import 'models/usuario_perfil.dart';
 import 'services/auth_service.dart';
 import 'services/factura_service.dart';
 import 'services/token_storage.dart';
+import 'l10n/app_localizations.dart';
+import 'l10n/language_selector.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -53,7 +55,8 @@ class _ProfileViewState extends State<ProfileView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mi Perfil', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(context.tr('profile_title'),
+            style: const TextStyle(fontWeight: FontWeight.bold)),
         automaticallyImplyLeading: false,
       ),
       body: RefreshIndicator(
@@ -96,23 +99,36 @@ class _ProfileViewState extends State<ProfileView> {
                 const SizedBox(height: 20),
                 Row(
                   children: [
-                    Expanded(child: _stat('Comprobantes', '${data.facturas.length}')),
+                    Expanded(child: _stat(context.tr('vouchers'), '${data.facturas.length}')),
                     const SizedBox(width: 12),
-                    Expanded(child: _stat('Total', 'S/ ${total.toStringAsFixed(2)}')),
+                    Expanded(child: _stat(context.tr('total'), 'S/ ${total.toStringAsFixed(2)}')),
                     const SizedBox(width: 12),
-                    Expanded(child: _stat('Miembro desde', perfil.anioRegistro)),
+                    Expanded(child: _stat(context.tr('member_since'), perfil.anioRegistro)),
                   ],
                 ),
                 const SizedBox(height: 28),
-                _sectionHeader('INFORMACIÓN DE CUENTA'),
+                _sectionHeader(context.tr('account_info')),
                 const SizedBox(height: 10),
                 _panel([
-                  _item(Icons.badge_rounded, 'DNI', perfil.dni.isEmpty ? '-' : perfil.dni),
-                  _item(Icons.email_rounded, 'Correo', perfil.correo),
-                  _item(Icons.cake_rounded, 'Fecha de nacimiento', perfil.fechaNacimientoCorta),
-                  _item(Icons.event_available_rounded, 'Miembro desde',
+                  _item(Icons.badge_rounded, context.tr('dni'), perfil.dni.isEmpty ? '-' : perfil.dni),
+                  _item(Icons.email_rounded, context.tr('email'), perfil.correo),
+                  _item(Icons.cake_rounded, context.tr('birth_date'), perfil.fechaNacimientoCorta),
+                  _item(Icons.event_available_rounded, context.tr('member_since'),
                       perfil.fechaRegistroCorta,
                       esUltimo: true),
+                ]),
+                const SizedBox(height: 28),
+                _sectionHeader(context.tr('preferences')),
+                const SizedBox(height: 10),
+                _panel([
+                  _itemAccion(
+                    Icons.language_rounded,
+                    context.tr('language'),
+                    AppLocalizations.idiomas[
+                        Localizations.localeOf(context).languageCode] ??
+                        '',
+                    () => LanguageSelector.mostrar(context),
+                  ),
                 ]),
               ],
             );
@@ -174,14 +190,14 @@ class _ProfileViewState extends State<ProfileView> {
                     border: Border.all(color: _azul),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.verified_rounded, size: 12, color: _azul),
-                      SizedBox(width: 4),
+                      const Icon(Icons.verified_rounded, size: 12, color: _azul),
+                      const SizedBox(width: 4),
                       Text(
-                        'CUENTA VERIFICADA',
-                        style: TextStyle(
+                        context.tr('verified_account'),
+                        style: const TextStyle(
                           color: _azul,
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
@@ -244,6 +260,29 @@ class _ProfileViewState extends State<ProfileView> {
                 color: _gris, fontSize: 11, fontWeight: FontWeight.w500),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _itemAccion(IconData icon, String title, String value, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(icon, color: _azul, size: 22),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(title,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600, fontSize: 14, color: _texto)),
+            ),
+            Text(value, style: const TextStyle(color: _gris, fontSize: 13)),
+            const SizedBox(width: 6),
+            const Icon(Icons.chevron_right_rounded, color: _gris, size: 20),
+          ],
+        ),
       ),
     );
   }

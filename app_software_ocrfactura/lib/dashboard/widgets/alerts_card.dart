@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/factura.dart';
+import '../../l10n/app_localizations.dart';
 
 class AlertsCard extends StatelessWidget {
   final List<Factura> alertas;
@@ -17,13 +18,13 @@ class AlertsCard extends StatelessWidget {
           border: Border.all(color: const Color(0xFFE0E0E0)),
         ),
         child: Row(
-          children: const [
-            Icon(Icons.verified_rounded, color: Color(0xFF2E7D32), size: 22),
-            SizedBox(width: 10),
+          children: [
+            const Icon(Icons.verified_rounded, color: Color(0xFF2E7D32), size: 22),
+            const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'Sin comprobantes con datos por validar',
-                style: TextStyle(fontSize: 13, color: Color(0xFF546E7A)),
+                context.tr('no_alerts'),
+                style: const TextStyle(fontSize: 13, color: Color(0xFF546E7A)),
               ),
             ),
           ],

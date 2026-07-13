@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 
 class StatsRow extends StatelessWidget {
   final int facturas;
@@ -20,7 +21,7 @@ class StatsRow extends StatelessWidget {
           child: _StatCard(
             icono: Icons.description_rounded,
             color: const Color(0xFF1565C0),
-            label: 'Facturas',
+            label: context.tr('stat_invoices'),
             valor: '$facturas',
           ),
         ),
@@ -29,7 +30,7 @@ class StatsRow extends StatelessWidget {
           child: _StatCard(
             icono: Icons.article_outlined,
             color: const Color(0xFF1976D2),
-            label: 'Albaranes',
+            label: context.tr('stat_delivery'),
             valor: '$albaranes',
           ),
         ),
@@ -38,7 +39,7 @@ class StatsRow extends StatelessWidget {
           child: _StatCard(
             icono: Icons.inventory_2_outlined,
             color: const Color(0xFF42A5F5),
-            label: 'Otros',
+            label: context.tr('stat_others'),
             valor: '$otros',
           ),
         ),

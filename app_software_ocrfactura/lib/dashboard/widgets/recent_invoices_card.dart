@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/factura.dart';
+import '../../l10n/app_localizations.dart';
 
 class RecentInvoicesCard extends StatelessWidget {
   final List<Factura> recientes;
@@ -27,29 +28,29 @@ class RecentInvoicesCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
-                children: const [
-                  Icon(Icons.history_rounded, size: 18, color: Color(0xFF1565C0)),
-                  SizedBox(width: 8),
+                children: [
+                  const Icon(Icons.history_rounded, size: 18, color: Color(0xFF1565C0)),
+                  const SizedBox(width: 8),
                   Text(
-                    'Últimos Comprobantes',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF263238)),
+                    context.tr('recent_title'),
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF263238)),
                   ),
                 ],
               ),
               TextButton(
                 onPressed: onVerTodas,
                 style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size(0, 0)),
-                child: const Text('Ver todas', style: TextStyle(fontSize: 12, color: Color(0xFF1565C0))),
+                child: Text(context.tr('see_all'), style: const TextStyle(fontSize: 12, color: Color(0xFF1565C0))),
               ),
             ],
           ),
           const Divider(height: 20, color: Color(0xFFE0E0E0)),
           if (recientes.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
               child: Text(
-                'Aún no registras comprobantes',
-                style: TextStyle(fontSize: 12, color: Color(0xFF78909C)),
+                context.tr('no_recent'),
+                style: const TextStyle(fontSize: 12, color: Color(0xFF78909C)),
               ),
             )
           else

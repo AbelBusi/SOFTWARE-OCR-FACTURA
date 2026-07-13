@@ -4,6 +4,8 @@ import 'navigation_container.dart';
 import 'custom_alert.dart';
 import '../services/auth_service.dart';
 import '../services/token_storage.dart';
+import 'l10n/app_localizations.dart';
+import 'l10n/language_selector.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -30,12 +32,12 @@ class _LoginPageState extends State<LoginPage> {
     final password = _passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      CustomAlert.warning(context, "Por favor, completa todos los campos");
+      CustomAlert.warning(context, context.tr('fill_all_fields'));
       return;
     }
 
     if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
-      CustomAlert.warning(context, "Ingresa un correo electrónico válido");
+      CustomAlert.warning(context, context.tr('invalid_email'));
       return;
     }
 
@@ -84,7 +86,24 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F9FC),
       body: SafeArea(
-        child: Center(
+        child: Stack(
+          children: [
+            Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 4, right: 8),
+                child: TextButton.icon(
+                  onPressed: () => LanguageSelector.mostrar(context),
+                  icon: const Icon(Icons.language_rounded, size: 18),
+                  label: Text(
+                    Localizations.localeOf(context).languageCode.toUpperCase(),
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  style: TextButton.styleFrom(foregroundColor: _azul),
+                ),
+              ),
+            ),
+            Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 32.0),
             child: Column(
@@ -108,8 +127,8 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  "Ingresa tus credenciales para continuar",
+                Text(
+                  context.tr('login_subtitle'),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: _gris,
@@ -123,7 +142,7 @@ class _LoginPageState extends State<LoginPage> {
                   enabled: !_isLoading,
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
-                    labelText: "Correo electrónico",
+                    labelText: context.tr('email'),
                     prefixIcon: const Icon(Icons.email_outlined, color: _gris),
                     filled: true,
                     fillColor: Colors.white,
@@ -147,7 +166,7 @@ class _LoginPageState extends State<LoginPage> {
                   enabled: !_isLoading,
                   obscureText: true,
                   decoration: InputDecoration(
-                    labelText: "Contraseña",
+                    labelText: context.tr('password'),
                     prefixIcon: const Icon(Icons.lock_outline_rounded, color: _gris),
                     filled: true,
                     fillColor: Colors.white,
@@ -188,9 +207,9 @@ class _LoginPageState extends State<LoginPage> {
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
-                        : const Text(
-                      "Entrar",
-                      style: TextStyle(
+                        : Text(
+                      context.tr('enter'),
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.3,
@@ -208,14 +227,16 @@ class _LoginPageState extends State<LoginPage> {
                   style: TextButton.styleFrom(
                     foregroundColor: _azul,
                   ),
-                  child: const Text(
-                    "¿No tienes cuenta? Regístrate aquí",
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                  child: Text(
+                    context.tr('no_account'),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
               ],
             ),
           ),
+        ),
+          ],
         ),
       ),
     );

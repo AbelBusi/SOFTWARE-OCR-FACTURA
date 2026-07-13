@@ -9,6 +9,7 @@ import 'navigation_container.dart';
 import 'custom_alert.dart';
 import 'services/auth_service.dart';
 import 'services/token_storage.dart';
+import 'l10n/app_localizations.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -286,27 +287,27 @@ class _RegisterPageState extends State<RegisterPage> {
         correo.isEmpty ||
         password.isEmpty ||
         _fechaNacimiento == null) {
-      CustomAlert.warning(context, "Por favor, completa todos los campos");
+      CustomAlert.warning(context, context.tr('fill_all_fields'));
       return;
     }
 
     if (dni.length != 8) {
-      CustomAlert.warning(context, "El DNI debe tener 8 dígitos");
+      CustomAlert.warning(context, context.tr('dni_8_digits'));
       return;
     }
 
     if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(correo)) {
-      CustomAlert.warning(context, "Ingresa un correo electrónico válido");
+      CustomAlert.warning(context, context.tr('invalid_email'));
       return;
     }
 
     if (password.length < 6) {
-      CustomAlert.warning(context, "La contraseña debe tener al menos 6 caracteres");
+      CustomAlert.warning(context, context.tr('password_min'));
       return;
     }
 
     if (password != confirmPassword) {
-      CustomAlert.warning(context, "Las contraseñas no coinciden");
+      CustomAlert.warning(context, context.tr('passwords_no_match'));
       return;
     }
 
@@ -399,7 +400,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  "REGISTRO AUTOMATIZADO",
+                  context.tr('register_title'),
                   textAlign: TextAlign.center,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w800,
@@ -409,7 +410,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  "Escanea tu documento para procesar identidades locales",
+                  context.tr('register_subtitle'),
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: const Color(0xFF546E7A),
@@ -427,7 +428,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   )
                       : const Icon(Icons.document_scanner_rounded),
                   label: Text(
-                    _isScanning ? "LEYENDO DOCUMENTO..." : "ESCANEAR DNI PERUANO",
+                    _isScanning ? context.tr('reading_document') : context.tr('scan_dni'),
                     style: const TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0.5),
                   ),
                   style: OutlinedButton.styleFrom(
@@ -471,10 +472,10 @@ class _RegisterPageState extends State<RegisterPage> {
                   enabled: !isBusy,
                   keyboardType: TextInputType.number,
                   maxLength: 8,
-                  decoration: const InputDecoration(
-                    labelText: "Número de DNI",
+                  decoration: InputDecoration(
+                    labelText: context.tr('dni_number'),
                     counterText: "",
-                    prefixIcon: Icon(Icons.badge_outlined),
+                    prefixIcon: const Icon(Icons.badge_outlined),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -483,9 +484,9 @@ class _RegisterPageState extends State<RegisterPage> {
                   controller: _apellidosController,
                   enabled: !isBusy,
                   textCapitalization: TextCapitalization.characters,
-                  decoration: const InputDecoration(
-                    labelText: "Apellidos Paterno / Materno",
-                    prefixIcon: Icon(Icons.person_outline_rounded),
+                  decoration: InputDecoration(
+                    labelText: context.tr('lastnames'),
+                    prefixIcon: const Icon(Icons.person_outline_rounded),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -494,9 +495,9 @@ class _RegisterPageState extends State<RegisterPage> {
                   controller: _nombresController,
                   enabled: !isBusy,
                   textCapitalization: TextCapitalization.words,
-                  decoration: const InputDecoration(
-                    labelText: "Nombres Completos",
-                    prefixIcon: Icon(Icons.person_pin_outlined),
+                  decoration: InputDecoration(
+                    labelText: context.tr('names'),
+                    prefixIcon: const Icon(Icons.person_pin_outlined),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -506,10 +507,10 @@ class _RegisterPageState extends State<RegisterPage> {
                   enabled: !isBusy,
                   readOnly: true,
                   onTap: isBusy ? null : _seleccionarFechaNacimiento,
-                  decoration: const InputDecoration(
-                    labelText: "Fecha de nacimiento",
-                    prefixIcon: Icon(Icons.cake_outlined),
-                    suffixIcon: Icon(Icons.calendar_today_outlined),
+                  decoration: InputDecoration(
+                    labelText: context.tr('birth_date'),
+                    prefixIcon: const Icon(Icons.cake_outlined),
+                    suffixIcon: const Icon(Icons.calendar_today_outlined),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -518,9 +519,9 @@ class _RegisterPageState extends State<RegisterPage> {
                   controller: _emailController,
                   enabled: !isBusy,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: "Correo electrónico",
-                    prefixIcon: Icon(Icons.email_outlined),
+                  decoration: InputDecoration(
+                    labelText: context.tr('email'),
+                    prefixIcon: const Icon(Icons.email_outlined),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -529,9 +530,9 @@ class _RegisterPageState extends State<RegisterPage> {
                   controller: _passwordController,
                   enabled: !isBusy,
                   obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: "Contraseña",
-                    prefixIcon: Icon(Icons.lock_outline_rounded),
+                  decoration: InputDecoration(
+                    labelText: context.tr('password'),
+                    prefixIcon: const Icon(Icons.lock_outline_rounded),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -540,9 +541,9 @@ class _RegisterPageState extends State<RegisterPage> {
                   controller: _confirmPasswordController,
                   enabled: !isBusy,
                   obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: "Confirmar contraseña",
-                    prefixIcon: Icon(Icons.lock_reset_outlined),
+                  decoration: InputDecoration(
+                    labelText: context.tr('confirm_password'),
+                    prefixIcon: const Icon(Icons.lock_reset_outlined),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -558,9 +559,9 @@ class _RegisterPageState extends State<RegisterPage> {
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
                   )
-                      : const Text(
-                    "Registrarse",
-                    style: TextStyle(
+                      : Text(
+                    context.tr('register_button'),
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -573,9 +574,9 @@ class _RegisterPageState extends State<RegisterPage> {
                   style: TextButton.styleFrom(
                     foregroundColor: theme.colorScheme.primary,
                   ),
-                  child: const Text(
-                    "¿Ya tienes cuenta? Inicia sesión",
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                  child: Text(
+                    context.tr('have_account'),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
               ],

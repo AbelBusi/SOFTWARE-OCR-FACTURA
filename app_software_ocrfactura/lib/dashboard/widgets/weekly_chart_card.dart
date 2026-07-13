@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 
 class WeeklyChartCard extends StatefulWidget {
   /// Listas de 7 valores, índice 0 = Lunes ... índice 6 = Domingo
@@ -44,10 +45,10 @@ class _WeeklyChartCardState extends State<WeeklyChartCard> {
             children: [
               const Icon(Icons.bar_chart_rounded, size: 18, color: _azul),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Actividad Semanal',
-                  style: TextStyle(
+                  context.tr('weekly_activity'),
+                  style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF263238),
@@ -82,8 +83,8 @@ class _WeeklyChartCardState extends State<WeeklyChartCard> {
       ),
       child: Row(
         children: [
-          _chip('Cant.', !_porMonto, () => setState(() => _porMonto = false)),
-          _chip('Monto', _porMonto, () => setState(() => _porMonto = true)),
+          _chip(context.tr('qty'), !_porMonto, () => setState(() => _porMonto = false)),
+          _chip(context.tr('amount'), _porMonto, () => setState(() => _porMonto = true)),
         ],
       ),
     );

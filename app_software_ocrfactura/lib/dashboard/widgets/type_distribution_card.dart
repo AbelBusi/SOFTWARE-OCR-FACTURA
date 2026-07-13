@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 
 class TypeDistributionCard extends StatelessWidget {
   final Map<String, double> montoPorTipo;
@@ -33,25 +34,27 @@ class TypeDistributionCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
-              Icon(Icons.donut_large_rounded, size: 18, color: Color(0xFF1565C0)),
-              SizedBox(width: 8),
-              Text(
-                'Gasto por Tipo de Comprobante',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF263238),
+            children: [
+              const Icon(Icons.donut_large_rounded, size: 18, color: Color(0xFF1565C0)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  context.tr('spend_by_type'),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF263238),
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 18),
           if (entradas.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: Text('Sin datos para mostrar',
-                  style: TextStyle(fontSize: 12, color: Color(0xFF78909C))),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(context.tr('no_data'),
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF78909C))),
             )
           else
             ...List.generate(entradas.length, (i) {

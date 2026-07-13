@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 
 class QuickActionsRow extends StatelessWidget {
   final VoidCallback onEscanear;
@@ -19,7 +20,7 @@ class QuickActionsRow extends StatelessWidget {
         Expanded(
           child: _accion(
             icono: Icons.camera_alt_rounded,
-            label: 'Escanear',
+            label: context.tr('action_scan'),
             onTap: onEscanear,
           ),
         ),
@@ -27,7 +28,7 @@ class QuickActionsRow extends StatelessWidget {
         Expanded(
           child: _accion(
             icono: Icons.receipt_long_rounded,
-            label: 'Historial',
+            label: context.tr('action_history'),
             onTap: onHistorial,
           ),
         ),
@@ -35,7 +36,7 @@ class QuickActionsRow extends StatelessWidget {
         Expanded(
           child: _accion(
             icono: Icons.support_agent_rounded,
-            label: 'Asistente',
+            label: context.tr('action_assistant'),
             onTap: onAsistente,
           ),
         ),
