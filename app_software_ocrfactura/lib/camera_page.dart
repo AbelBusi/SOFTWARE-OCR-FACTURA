@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'models/ocr_result.dart';
 import 'services/ocr_service.dart';
 import 'services/token_storage.dart';
@@ -16,18 +17,40 @@ class CameraPage extends StatefulWidget {
 }
 
 class _CameraPageState extends State<CameraPage> {
+  final ImagePicker _picker = ImagePicker();
   bool _isProcessing = false;
 
   Future<void> _takePicture() async {
+    // Captura con guía visual estilo escáner; devuelve la ruta de la imagen.
+    final rutaImagen = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(builder: (_) => const ScannerCameraPage()),
+    );
+
+    if (rutaImagen == null || !mounted) return;
+    await _procesarImagen(rutaImagen);
+  }
+
+  // Nuevo: seleccionar una imagen ya guardada en el celular (galería).
+  Future<void> _seleccionarDeGaleria() async {
     try {
-      // Captura con guía visual estilo escáner; devuelve la ruta de la imagen.
-      final rutaImagen = await Navigator.push<String>(
-        context,
-        MaterialPageRoute(builder: (_) => const ScannerCameraPage()),
+      final XFile? foto = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
       );
 
-      if (rutaImagen == null) return;
+      if (foto == null || !mounted) return;
+      await _procesarImagen(foto.path);
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar(e.toString().replaceFirst('Exception: ', ''));
+    }
+  }
 
+  // Flujo OCR compartido: recibe la ruta de una imagen (cámara o galería),
+  // la procesa y lleva al usuario a la pantalla de revisión.
+  Future<void> _procesarImagen(String rutaImagen) async {
+    try {
       setState(() {
         _isProcessing = true;
       });
@@ -146,6 +169,7 @@ class _CameraPageState extends State<CameraPage> {
               ? const Center(child: ProcessingAnimation())
               : CameraIdleView(
                   onTomarFoto: _takePicture,
+                  onSeleccionarGaleria: _seleccionarDeGaleria,
                   onAgregarManual: _agregarManual,
                 ),
         ),

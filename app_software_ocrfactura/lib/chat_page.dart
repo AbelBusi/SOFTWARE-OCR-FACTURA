@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'models/chat_message.dart';
 import 'services/chat_service.dart';
 import 'l10n/app_localizations.dart';
@@ -15,10 +16,20 @@ class _ChatPageState extends State<ChatPage> {
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _mensajes = [];
 
+  // Entrada por voz (dictado de la pregunta).
+  final stt.SpeechToText _speech = stt.SpeechToText();
+  bool _escuchando = false;
+
   bool _cargando = false;
   bool _saludoAgregado = false;
 
   static const _azul = Color(0xFF1565C0);
+
+  static const Map<String, String> _vozLocale = {
+    'es': 'es_ES',
+    'en': 'en_US',
+    'pt': 'pt_BR',
+  };
 
   static const _sugerencias = [
     'suggestion_total',
@@ -38,9 +49,70 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   void dispose() {
+    _speech.stop();
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  // Activa/detiene el dictado por voz. Si el micrófono no está disponible o se
+  // niega el permiso, avisa sin afectar el resto del chat.
+  Future<void> _toggleVoz() async {
+    if (_escuchando) {
+      await _speech.stop();
+      if (mounted) setState(() => _escuchando = false);
+      return;
+    }
+
+    // Se capturan antes de los await para no usar el context tras un gap async.
+    final noDisponible = context.tr('voice_unavailable');
+    final lang = Localizations.localeOf(context).languageCode;
+
+    try {
+      final disponible = await _speech.initialize(
+        onStatus: (estado) {
+          if ((estado == 'done' || estado == 'notListening') && mounted) {
+            setState(() => _escuchando = false);
+          }
+        },
+        onError: (_) {
+          if (mounted) setState(() => _escuchando = false);
+        },
+      );
+
+      if (!disponible) {
+        if (mounted) _mostrarSnack(noDisponible);
+        return;
+      }
+
+      setState(() => _escuchando = true);
+
+      await _speech.listen(
+        listenOptions: stt.SpeechListenOptions(localeId: _vozLocale[lang]),
+        onResult: (resultado) {
+          _controller.text = resultado.recognizedWords;
+          _controller.selection = TextSelection.fromPosition(
+            TextPosition(offset: _controller.text.length),
+          );
+        },
+      );
+    } catch (_) {
+      if (mounted) {
+        setState(() => _escuchando = false);
+        _mostrarSnack(noDisponible);
+      }
+    }
+  }
+
+  void _mostrarSnack(String mensaje) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(mensaje, style: const TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFF263238),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 
   void _bajar() {
@@ -275,7 +347,9 @@ class _ChatPageState extends State<ChatPage> {
               maxLines: 4,
               style: const TextStyle(fontSize: 14),
               decoration: InputDecoration(
-                hintText: context.tr('chat_hint'),
+                hintText: _escuchando
+                    ? context.tr('voice_listening')
+                    : context.tr('chat_hint'),
                 hintStyle:
                     const TextStyle(fontSize: 13, color: Color(0xFF9E9E9E)),
                 isDense: true,
@@ -293,6 +367,24 @@ class _ChatPageState extends State<ChatPage> {
                 ),
               ),
               onSubmitted: (_) => _enviar(),
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Nuevo: dictar la pregunta por voz.
+          Material(
+            color: _escuchando ? const Color(0xFFC62828) : const Color(0xFFECEFF1),
+            shape: const CircleBorder(),
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: _cargando ? null : _toggleVoz,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Icon(
+                  _escuchando ? Icons.mic : Icons.mic_none_rounded,
+                  color: _escuchando ? Colors.white : _azul,
+                  size: 20,
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 8),

@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 
 class CameraIdleView extends StatelessWidget {
   final VoidCallback onTomarFoto;
+  final VoidCallback onSeleccionarGaleria;
   final VoidCallback onAgregarManual;
 
   const CameraIdleView({
     super.key,
     required this.onTomarFoto,
+    required this.onSeleccionarGaleria,
     required this.onAgregarManual,
   });
 
@@ -59,6 +61,20 @@ class CameraIdleView extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             elevation: 0,
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Nuevo: seleccionar una imagen desde la galería del celular.
+        OutlinedButton.icon(
+          onPressed: onSeleccionarGaleria,
+          icon: const Icon(Icons.photo_library_rounded),
+          label: const Text('SUBIR DESDE GALERÍA',
+              style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: const Color(0xFF1565C0),
+            side: const BorderSide(color: Color(0xFF1565C0)),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           ),
         ),
         const SizedBox(height: 12),

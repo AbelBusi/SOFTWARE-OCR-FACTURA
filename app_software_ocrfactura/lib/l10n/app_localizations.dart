@@ -113,6 +113,8 @@ class AppLocalizations {
       'view_image': 'Ver imagen',
       'invoice_image': 'Imagen de la factura',
       'no_image': 'No hay imagen disponible para esta factura.',
+      'voice_listening': 'Escuchando...',
+      'voice_unavailable': 'El micrófono no está disponible o no se otorgó el permiso.',
     },
     'en': {
       'login_subtitle': 'Enter your credentials to continue',
@@ -196,6 +198,8 @@ class AppLocalizations {
       'view_image': 'View image',
       'invoice_image': 'Invoice image',
       'no_image': 'No image available for this invoice.',
+      'voice_listening': 'Listening...',
+      'voice_unavailable': 'The microphone is unavailable or permission was denied.',
     },
     'pt': {
       'login_subtitle': 'Digite suas credenciais para continuar',
@@ -279,6 +283,8 @@ class AppLocalizations {
       'view_image': 'Ver imagem',
       'invoice_image': 'Imagem da fatura',
       'no_image': 'Não há imagem disponível para esta fatura.',
+      'voice_listening': 'Ouvindo...',
+      'voice_unavailable': 'O microfone não está disponível ou a permissão foi negada.',
     },
   };
 }
