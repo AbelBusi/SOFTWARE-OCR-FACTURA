@@ -190,7 +190,7 @@ def exportar_facturas(
 
     formato = (formato or "").lower()
 
-    if formato not in ("pdf", "excel"):
+    if formato not in export_service.formatos_disponibles():
 
         raise HTTPException(
             status_code=400,
@@ -198,24 +198,58 @@ def exportar_facturas(
         )
 
     filas = service.listar_con_empresa(db, id_usuario, q=q, fecha=fecha)
-
     fecha_str = fecha.isoformat() if fecha else None
+    contenido = export_service.exportar_general(filas, formato, q=q, fecha=fecha_str)
+
     sello = date.today().isoformat()
-
-    if formato == "pdf":
-
-        contenido = export_service.generar_pdf(filas, q=q, fecha=fecha_str)
-        media_type = "application/pdf"
-        nombre = f"facturas_{sello}.pdf"
-
-    else:
-
-        contenido = export_service.generar_excel(filas, q=q, fecha=fecha_str)
-        media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        nombre = f"facturas_{sello}.xlsx"
+    nombre = f"facturas_{sello}.{export_service.extension(formato)}"
 
     return StreamingResponse(
         io.BytesIO(contenido),
-        media_type=media_type,
+        media_type=export_service.media_type(formato),
+        headers={"Content-Disposition": f"attachment; filename={nombre}"}
+    )
+
+
+
+@router.get(
+    "/{id_factura}/exportar"
+)
+def exportar_factura_individual(
+
+    id_factura: int,
+
+    formato: str = "pdf",
+
+    db: Session = Depends(get_db)
+
+):
+
+    formato = (formato or "").lower()
+
+    if formato not in export_service.formatos_disponibles():
+
+        raise HTTPException(
+            status_code=400,
+            detail="Formato no soportado. Use 'pdf' o 'excel'."
+        )
+
+    factura = service.obtener_completa(db, id_factura)
+
+    if not factura:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Factura no encontrada"
+        )
+
+    contenido = export_service.exportar_individual(factura, formato)
+
+    sello = date.today().isoformat()
+    nombre = f"factura_{id_factura}_{sello}.{export_service.extension(formato)}"
+
+    return StreamingResponse(
+        io.BytesIO(contenido),
+        media_type=export_service.media_type(formato),
         headers={"Content-Disposition": f"attachment; filename={nombre}"}
     )

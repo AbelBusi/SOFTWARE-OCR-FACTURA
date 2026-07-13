@@ -67,26 +67,35 @@ class FacturaService {
     }
   }
 
-  /// Exporta el listado (respetando los filtros) en el formato indicado
-  /// ('pdf' o 'excel'). Descarga el archivo, lo guarda en la carpeta pública
-  /// Descargas y deja una copia temporal para compartir.
-  ///
-  /// Devuelve la ruta de la copia a compartir y si se guardó en Descargas
-  /// (esto último puede fallar de forma no crítica en dispositivos antiguos).
-  static Future<({String rutaCompartir, bool enDescargas})> exportarFacturas({
+  static Future<ExportResult> exportarFacturas({
     required int idUsuario,
     required String formato,
     String? q,
     String? fecha,
   }) async {
-    final token = await TokenStorage.getToken();
-
     final params = <String, String>{'formato': formato};
     if (q != null && q.trim().isNotEmpty) params['q'] = q.trim();
     if (fecha != null && fecha.isNotEmpty) params['fecha'] = fecha;
 
     final uri = Uri.parse('$baseUrl/factura/usuario/$idUsuario/exportar')
         .replace(queryParameters: params);
+
+    return _descargarReporte(uri, formato, 'facturas');
+  }
+
+  static Future<ExportResult> exportarFacturaIndividual({
+    required int idFactura,
+    required String formato,
+  }) async {
+    final uri = Uri.parse('$baseUrl/factura/$idFactura/exportar')
+        .replace(queryParameters: {'formato': formato});
+
+    return _descargarReporte(uri, formato, 'factura_$idFactura');
+  }
+
+  static Future<ExportResult> _descargarReporte(
+      Uri uri, String formato, String nombreBase) async {
+    final token = await TokenStorage.getToken();
 
     final response = await http.get(
       uri,
@@ -107,14 +116,12 @@ class FacturaService {
         ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         : 'application/pdf';
     final sello = DateTime.now().millisecondsSinceEpoch;
-    final nombre = 'facturas_$sello.$ext';
+    final nombre = '${nombreBase}_$sello.$ext';
 
-    // Copia temporal para compartir (share_plus necesita una ruta de archivo).
     final dir = await getTemporaryDirectory();
     final archivo = File('${dir.path}/$nombre');
     await archivo.writeAsBytes(response.bodyBytes);
 
-    // Guardado en Descargas (no crítico: si falla, igual se puede compartir).
     bool enDescargas = false;
     try {
       await DownloadsSaver.guardar(
@@ -127,9 +134,16 @@ class FacturaService {
       enDescargas = false;
     }
 
-    return (rutaCompartir: archivo.path, enDescargas: enDescargas);
+    return ExportResult(rutaCompartir: archivo.path, enDescargas: enDescargas);
   }
 
+}
+
+class ExportResult {
+  final String rutaCompartir;
+  final bool enDescargas;
+
+  ExportResult({required this.rutaCompartir, required this.enDescargas});
 }
 
 

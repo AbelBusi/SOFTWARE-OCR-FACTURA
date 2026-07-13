@@ -74,6 +74,17 @@ class Factura(Base):
     )
 
 
+    estado = Column(
+        String(20),
+        server_default="REGISTRADA"
+    )
+
+
+    observaciones = Column(
+        String(255)
+    )
+
+
     fecha_registro = Column(
         TIMESTAMP,
         server_default=func.now()
@@ -86,3 +97,6 @@ class Factura(Base):
         back_populates="factura",
         cascade="all, delete-orphan"
     )
+
+
+    empresa = relationship("Empresa")

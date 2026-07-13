@@ -79,6 +79,19 @@ class FacturaService:
 
 
 
+    def obtener_completa(
+        self,
+        db: Session,
+        id_factura: int
+    ):
+
+        return self.repository.obtener_completa(
+            db,
+            id_factura
+        )
+
+
+
     def listar_por_usuario(
         self,
         db: Session,

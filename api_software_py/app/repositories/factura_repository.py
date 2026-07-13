@@ -59,6 +59,26 @@ class FacturaRepository:
 
 
 
+    def obtener_completa(
+        self,
+        db: Session,
+        id_factura: int
+    ):
+
+        return (
+            db.query(Factura)
+            .options(
+                joinedload(Factura.detalles),
+                joinedload(Factura.empresa)
+            )
+            .filter(
+                Factura.id_factura == id_factura
+            )
+            .first()
+        )
+
+
+
     def _query_filtrada(
         self,
         db: Session,

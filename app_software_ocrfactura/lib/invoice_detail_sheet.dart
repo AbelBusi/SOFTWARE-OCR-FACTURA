@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'models/factura_detalle.dart';
 import 'services/factura_service.dart';
+import 'export_helper.dart';
 
 class InvoiceDetailSheet {
   InvoiceDetailSheet._();
@@ -217,17 +218,42 @@ class _InvoiceDetailContentState extends State<_InvoiceDetailContent> {
                 ),
               ),
               const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF1565C0),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => ExportHelper.mostrarOpciones(
+                        context,
+                        (formato) => FacturaService.exportarFacturaIndividual(
+                          idFactura: widget.idFactura,
+                          formato: formato,
+                        ),
+                      ),
+                      icon: const Icon(Icons.file_download_outlined, size: 18),
+                      label: const Text('EXPORTAR'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF1565C0),
+                        side: const BorderSide(color: Color(0xFF1565C0)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
                   ),
-                  child: const Text('CERRAR DETALLES'),
-                ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF1565C0),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: const Text('CERRAR'),
+                    ),
+                  ),
+                ],
               ),
             ],
           );
