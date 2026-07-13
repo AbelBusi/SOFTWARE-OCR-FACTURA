@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import 'models/factura.dart';
 import 'services/factura_service.dart';
 import 'services/token_storage.dart';
@@ -92,6 +93,117 @@ class _HistoryViewState extends State<HistoryView> {
     _recargar();
   }
 
+  void _mostrarSnack(String mensaje) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(mensaje, style: const TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFF263238),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  // Menú para elegir el formato de exportación (PDF o Excel).
+  void _mostrarOpcionesExportar() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 18, 20, 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Exportar listado',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Color(0xFF263238))),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.picture_as_pdf_rounded,
+                  color: Color(0xFFC62828)),
+              title: const Text('Exportar a PDF'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _exportar('pdf');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.grid_on_rounded,
+                  color: Color(0xFF2E7D32)),
+              title: const Text('Exportar a Excel'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _exportar('excel');
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _exportar(String formato) async {
+    // Evita exportar un reporte vacío usando los datos ya cargados.
+    try {
+      final actuales = await _futureFacturas;
+      if (actuales.isEmpty) {
+        _mostrarSnack('No hay comprobantes para exportar.');
+        return;
+      }
+    } catch (_) {
+      _mostrarSnack('No se pudo preparar la exportación.');
+      return;
+    }
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final idUsuario = await TokenStorage.getUserId();
+      if (idUsuario == null) {
+        throw Exception('No se encontró el usuario. Inicia sesión nuevamente.');
+      }
+
+      final resultado = await FacturaService.exportarFacturas(
+        idUsuario: idUsuario,
+        formato: formato,
+        q: _searchCtrl.text,
+        fecha: _fecha != null ? _fmtFecha(_fecha!) : null,
+      );
+
+      if (!mounted) return;
+      Navigator.pop(context); // cierra el indicador de carga
+
+      _mostrarSnack(resultado.enDescargas
+          ? 'Reporte guardado en Descargas.'
+          : 'Reporte generado. Usa Compartir para guardarlo.');
+
+      await Share.shareXFiles(
+        [XFile(resultado.rutaCompartir)],
+        subject: 'Reporte de comprobantes',
+      );
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context); // cierra el indicador de carga
+      _mostrarSnack(e.toString().replaceFirst('Exception: ', ''));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -103,6 +215,13 @@ class _HistoryViewState extends State<HistoryView> {
         backgroundColor: const Color(0xFF1565C0),
         foregroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          IconButton(
+            tooltip: 'Exportar',
+            icon: const Icon(Icons.file_download_outlined),
+            onPressed: _mostrarOpcionesExportar,
+          ),
+        ],
       ),
       body: Column(
         children: [

@@ -93,3 +93,20 @@ class FacturaService:
             q=q,
             fecha=fecha
         )
+
+
+
+    def listar_con_empresa(
+        self,
+        db: Session,
+        id_usuario: int,
+        q: str = None,
+        fecha=None
+    ):
+
+        return self.repository.listar_con_empresa(
+            db,
+            id_usuario,
+            q=q,
+            fecha=fecha
+        )

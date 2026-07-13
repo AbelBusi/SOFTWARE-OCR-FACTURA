@@ -1,10 +1,14 @@
+import io
 from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 
 from app.database import get_db
+
+from app.services.export_service import ExportService
 
 from app.schemas.factura import (
     FacturaCreate,
@@ -34,6 +38,8 @@ router = APIRouter(
 
 
 service = FacturaService()
+
+export_service = ExportService()
 
 
 
@@ -161,4 +167,55 @@ def listar_facturas_usuario(
 
         fecha=fecha
 
+    )
+
+
+
+@router.get(
+    "/usuario/{id_usuario}/exportar"
+)
+def exportar_facturas(
+
+    id_usuario: int,
+
+    formato: str = "pdf",
+
+    q: str | None = None,
+
+    fecha: date | None = None,
+
+    db: Session = Depends(get_db)
+
+):
+
+    formato = (formato or "").lower()
+
+    if formato not in ("pdf", "excel"):
+
+        raise HTTPException(
+            status_code=400,
+            detail="Formato no soportado. Use 'pdf' o 'excel'."
+        )
+
+    filas = service.listar_con_empresa(db, id_usuario, q=q, fecha=fecha)
+
+    fecha_str = fecha.isoformat() if fecha else None
+    sello = date.today().isoformat()
+
+    if formato == "pdf":
+
+        contenido = export_service.generar_pdf(filas, q=q, fecha=fecha_str)
+        media_type = "application/pdf"
+        nombre = f"facturas_{sello}.pdf"
+
+    else:
+
+        contenido = export_service.generar_excel(filas, q=q, fecha=fecha_str)
+        media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        nombre = f"facturas_{sello}.xlsx"
+
+    return StreamingResponse(
+        io.BytesIO(contenido),
+        media_type=media_type,
+        headers={"Content-Disposition": f"attachment; filename={nombre}"}
     )
