@@ -1,3 +1,5 @@
+from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -141,6 +143,10 @@ def listar_facturas_usuario(
 
     id_usuario: int,
 
+    q: str | None = None,
+
+    fecha: date | None = None,
+
     db: Session = Depends(get_db)
 
 ):
@@ -149,6 +155,10 @@ def listar_facturas_usuario(
 
         db,
 
-        id_usuario
+        id_usuario,
+
+        q=q,
+
+        fecha=fecha
 
     )

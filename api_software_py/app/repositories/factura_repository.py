@@ -1,6 +1,8 @@
+from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload
 
 from app.models.factura import Factura
+from app.models.empresa import Empresa
 
 
 class FacturaRepository:
@@ -60,13 +62,37 @@ class FacturaRepository:
     def listar_por_usuario(
         self,
         db: Session,
-        id_usuario: int
+        id_usuario: int,
+        q: str = None,
+        fecha=None
     ):
+        """Lista las facturas del usuario. Los filtros son opcionales y se aplican
+        en la base de datos para mantener el rendimiento:
 
-        return (
+        - ``q``: texto libre que coincide con proveedor (razón social), RUC o
+          número de comprobante.
+        - ``fecha``: fecha de emisión exacta.
+        """
+        query = (
             db.query(Factura)
-            .filter(
-                Factura.id_usuario == id_usuario
-            )
-            .all()
+            .filter(Factura.id_usuario == id_usuario)
         )
+
+        if q:
+            patron = f"%{q.strip()}%"
+            query = (
+                query
+                .outerjoin(Empresa, Factura.id_empresa == Empresa.id_empresa)
+                .filter(
+                    or_(
+                        Empresa.razon_social.ilike(patron),
+                        Empresa.ruc.ilike(patron),
+                        Factura.numero_comprobante.ilike(patron),
+                    )
+                )
+            )
+
+        if fecha:
+            query = query.filter(Factura.fecha_emision == fecha)
+
+        return query.order_by(Factura.id_factura.desc()).all()

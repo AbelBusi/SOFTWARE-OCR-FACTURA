@@ -82,10 +82,14 @@ class FacturaService:
     def listar_por_usuario(
         self,
         db: Session,
-        id_usuario: int
+        id_usuario: int,
+        q: str = None,
+        fecha=None
     ):
 
         return self.repository.listar_por_usuario(
             db,
-            id_usuario
+            id_usuario,
+            q=q,
+            fecha=fecha
         )

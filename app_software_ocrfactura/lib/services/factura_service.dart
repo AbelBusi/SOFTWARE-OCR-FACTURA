@@ -8,11 +8,23 @@ import '../models/factura_detalle.dart';
 class FacturaService {
   static const String baseUrl = ApiConfig.baseUrl;
 
-  static Future<List<Factura>> getFacturasUsuario(int idUsuario) async {
+  static Future<List<Factura>> getFacturasUsuario(
+    int idUsuario, {
+    String? q,
+    String? fecha,
+  }) async {
     final token = await TokenStorage.getToken();
 
+    // Solo se envían los filtros con valor; sin ellos se listan todas.
+    final params = <String, String>{};
+    if (q != null && q.trim().isNotEmpty) params['q'] = q.trim();
+    if (fecha != null && fecha.isNotEmpty) params['fecha'] = fecha;
+
+    final uri = Uri.parse('$baseUrl/factura/usuario/$idUsuario')
+        .replace(queryParameters: params.isEmpty ? null : params);
+
     final response = await http.get(
-      Uri.parse('$baseUrl/factura/usuario/$idUsuario'),
+      uri,
       headers: {
         'Content-Type': 'application/json',
         if (token != null) 'Authorization': 'Bearer $token',
